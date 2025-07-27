@@ -1,0 +1,254 @@
+﻿@using System.Globalization
+@using System.Security.Claims
+@model Products
+
+<link href="~/css/ckeditor.css" rel="stylesheet" />
+<link rel="stylesheet"
+      href="https://cdn.ckeditor.com/ckeditor5/45.2.1/ckeditor5.css"
+      crossorigin />
+
+@{
+    ViewData["Title"] = @Model.Name;
+
+    long? currentUserId = null;
+    var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    if (!string.IsNullOrEmpty(userIdString) && long.TryParse(userIdString, NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsedId))
+    {
+        currentUserId = parsedId;
+    }
+
+    bool isAdmin = User.IsInRole("Admin");
+}
+
+<script>
+    fetch(`/api/evaluate/check/${@Model.Id}`)
+        .then((response) => {
+            if (response.status === 422 || response.status === 401) {
+                return response.json();
+            }
+
+            if (!response.ok) {
+                return showErrorToast(
+                    "Lỗi khi tải dử liệu. Vui lòng thử lại sau.",
+                    4000
+                );
+            }
+
+            return response.json();
+        })
+        .then((data) => {
+            if ((data.code = "PURCHASED")) {
+                document.getElementById(
+                    "cmt"
+                ).innerHTML = `<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createAndUpdateModal" onclick="startCreate()">Tạo đánh giá</button>`;
+            }
+        });
+</script>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 col-lg-4">
+            <img src="@Model.ProductImageUrl" alt="Some picture" class="img-fluid" />
+        </div>
+        <div class="col-12 col-lg-8">
+            <h3 class="h2">@Model.Name</h3>
+            <p class="h5">
+                <span>Đánh giá: </span>
+                @{
+                    double averageEvaluate = Model.AverageEvaluate;
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        if (averageEvaluate >= i)
+                        {
+                            <i class="fa-solid fa-star text-warning"></i>
+                        }
+                        else if (averageEvaluate >= i - 0.5)
+                        {
+                            <i class="fa-regular fa-star-half-stroke text-warning"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-regular fa-star text-warning"></i>
+                        }
+                    }
+                }
+                <span> | @Model.TotalEvaluate.ToString("N0") lượt đánh giá</span>
+            </p>
+            <p class="h5">Đã bán @Model.Sold.ToString("N0") | Còn lại @Model.Stock.ToString("N0")</p>
+            <p class="h3">S
+                @if (Model.Discount > 0)
+                {
+                    <span class="text-black">@((Model.Price - ((Model.Price / 100) * Model.Discount)).ToString("C0"))</span>
+                    <span class="text-decoration-line-through">@Model.Price.ToString("C0")</span>
+                }
+                else
+                {
+                    <span>@Model.Price.ToString("C0")</span>
+                }
+            </p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary px-3" onclick="reduce()">-</button>
+                <input type="number" class="form-control" id="quantity" style="max-width: 250px" value="1">
+                <button class="btn btn-primary px-3" onclick="increase()">+</button>
+            </div>
+            <div class="mt-3">
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#buyModal" onclick="startBuyNow(@Model.Id, '@Model.Name', @Model.Price)">Mua ngay</button>
+                }
+                <button class="btn btn-warning" onclick="addToCart(@Model.Id)">Thêm vào giỏ hàng</button>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <h4 class="h4">Mô tả sản phẩm</h4>
+        @Html.Raw(Model.Description)
+    </div>
+    <h4 class="h4">Đánh giá</h4>
+    <span id="cmt"></span>
+    @foreach (Evaluates evaluates in @Model.Evaluates)
+    {
+        <div class="mt-2">
+            <h5 class="h5">@evaluates.User.Name</h5>
+            @{
+                double averageEvaluateMini = evaluates.Star;
+                for (int i = 1; i <= 5; i++)
+                {
+                    if (averageEvaluateMini >= i)
+                    {
+                        <i class="fa-solid fa-star text-warning"></i>
+                    }
+                    else if (averageEvaluateMini >= i - 0.5)
+                    {
+                        <i class="fa-regular fa-star-half-stroke text-warning"></i>
+                    }
+                    else
+                    {
+                        <i class="fa-regular fa-star text-warning"></i>
+                    }
+                }
+            }
+            <p>
+                @Html.Raw(evaluates.Content)
+            </p>
+            @if (User.Identity.IsAuthenticated && (isAdmin || (currentUserId.HasValue && currentUserId.Value == evaluates.UserId)))
+            {
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#createAndUpdateModal" onclick="startUpdate(@evaluates.Id, @evaluates.Star, '@evaluates.Content')">Sửa</button>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="startDelete(@evaluates.Id)">Xóa</button>
+            }
+        </div>
+    }
+</div>
+
+<div>
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <div class="modal fade" id="buyModal" tabindex="-1" aria-labelledby="buyModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="buyModalLabel">Mua ngay</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3 row">
+                            <h1 class="h1">Thông tin người nhận</h1>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Tên người nhận</label>
+                                <input type="text" class="form-control" id="name" placeholder="ví dụ: Bùi Đăng Khoa" value="@User.Identity.Name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Số điện thoại người nhận</label>
+                                <input type="text" class="form-control" id="phone" placeholder="ví dụ: 0999999999">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Địa chỉ email người nhận (Tùy chọn)</label>
+                                <input type="email" class="form-control" id="email" placeholder="ví dụ: khoabdtb00417@fpt.edu.vn">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <h1 class="h1">Thông tin sản phẩm</h1>
+                            <div class="mb-3">
+                                <label for="productName" class="form-label">Tên sản phẩm</label>
+                                <input type="text" class="form-control" id="productName" readonly="">
+                            </div>
+                            <div class="mb-3">
+                                <label for="productQuantity" class="form-label">Số lượng sản phẩm</label>
+                                <input type="number" class="form-control" id="productQuantity" placeholder="ví dụ: 999" value="1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="productPrice" class="form-label">Tổng hóa đơn</label>
+                                <input type="text" class="form-control" id="productPrice" readonly="">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn btn-success" onclick="buyNow()">Thanh toán</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    
+    <div class="modal fade" id="createAndUpdateModal" tabindex="-1" aria-labelledby="createAndUpdateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="createAndUpdateModalLabel">Tạo và sửa đánh giá</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Đánh giá</label>
+                        <input type="range" min="1" max="5" value="5" step="0.5" class="form-range" id="star">
+                    </div>
+                    <div class="main-container">
+                        <div class="editor-container editor-container_document-editor editor-container_include-word-count"
+                             id="editor-container">
+                            <div class="editor-container__menu-bar" id="editor-menu-bar"></div>
+                            <div class="editor-container__toolbar" id="editor-toolbar"></div>
+                            <div class="editor-container__editor-wrapper">
+                                <div class="editor-container__editor">
+                                    <div id="editor"></div>
+                                </div>
+                            </div>
+                            <div class="editor_container__word-count" id="editor-word-count"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="createAndUpdateButton">Tạo và sửa đánh giá</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteModalLabel">Xóa đánh giá</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa đánh giá này?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-danger" onclick="del()">Xóa đánh giá</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/buynow.js"></script>
+<script src="~/js/addCart.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/45.2.1/ckeditor5.umd.js" crossorigin></script>
+<script src="~/js/evaluate.js"></script>
+<script>
+    selectedProduct = @Model.Id;
+</script>

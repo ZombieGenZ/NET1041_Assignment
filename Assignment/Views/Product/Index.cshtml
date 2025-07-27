@@ -1,0 +1,187 @@
+﻿<link href="~/css/ckeditor.css" rel="stylesheet" />
+<link
+    rel="stylesheet"
+    href="https://cdn.ckeditor.com/ckeditor5/45.2.1/ckeditor5.css"
+    crossorigin
+/>
+
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <h1 class="h1">
+            Quản lý sản phẩm
+            <div class="float-end align-items-center">
+                <button class="btn btn-primary" onclick="startCreate()" data-bs-toggle="modal" data-bs-target="#createAndUpdateModal">Tạo sản phẩm mới</button>
+            </div>
+        </h1>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-6 offset-md-3"> <div class="input-group">
+                <input type="text" class="form-control" id="search" placeholder="Tìm kiếm...">
+                <button class="btn btn-primary" type="button" onclick="Search()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Tên sản phẩm</th>
+                <th scope="col">Giá bán</th>
+                <th scope="col">Sản phẩm còn lại</th>
+                <th scope="col">Đã bán</th>
+                <th scope="col">Giảm giá (%)</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody id="ProductData"></tbody>
+        </table>
+    </div>
+</div>
+
+<div>
+    <div class="modal fade" id="createAndUpdateModal" tabindex="-1" aria-labelledby="createAndUpdateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="createAndUpdateModalLabel">Tạo và sửa sản phẩm</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Tên sản phẩm</label>
+                        <input type="text" class="form-control" id="name" placeholder="ví dụ: Kim cương">
+                    </div>
+                    <div class="main-container">
+                        <div
+                            class="editor-container editor-container_document-editor editor-container_include-word-count"
+                            id="editor-container">
+                            <div class="editor-container__menu-bar" id="editor-menu-bar"></div>
+                            <div class="editor-container__toolbar" id="editor-toolbar"></div>
+                            <div class="editor-container__editor-wrapper">
+                                <div class="editor-container__editor">
+                                    <div id="editor"></div></div>
+                            </div>
+                            <div class="editor_container__word-count" id="editor-word-count"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryList" class="form-label">Danh mục</label>
+                        <select class="form-select" id="categoryList"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Giá sản phẩm</label>
+                        <input type="number" class="form-control" id="price" placeholder="ví dụ: 999,9999">
+                    </div>
+                    <div class="mb-3">
+                        <label for="stock" class="form-label">Số hàng còn lại</label>
+                        <input type="number" class="form-control" id="stock" placeholder="ví dụ: 999">
+                    </div>
+                    <div class="mb-3">
+                        <label for="discount" class="form-label">Giảm giá (%)</label>
+                        <input type="number" class="form-control" id="discount" placeholder="ví dụ: 100% :D">
+                    </div>
+                    <div class="mb-3">
+                        <label for="preparationTime" class="form-label">Thời gian chuẩn bị (phút)</label>
+                        <input type="number" class="form-control" value="1" id="preparationTime" placeholder="ví dụ: 60">
+                    </div>
+                    <div class="mb-3">
+                        <label for="calories" class="form-label">Số calo</label>
+                        <input type="number" class="form-control" value="1" id="calories" placeholder="ví dụ: 10000">
+                    </div>
+                    <div class="mb-3">
+                        <label for="ingredients" class="form-label">Thành phần</label>
+                        <input type="text" class="form-control" id="ingredients" placeholder="ví dụ: Thùng carton 🗿">
+                    </div>
+                    <div class="mb-3">
+                        <p>Tùy chọn thêm:</p>
+                        <input class="form-check-input" type="checkbox" id="isSpicy">
+                        <label class="form-check-label" for="isSpicy">
+                            Đồ ăn <b>CAY</b> 🗣️
+                        </label>
+                        <input class="form-check-input" type="checkbox" id="isVegetarian">
+                        <label class="form-check-label" for="isVegetarian">
+                            Đồ ăn chay 🍃
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="img" class="form-label">Ảnh minh họa</label>
+                        <input type="file" class="form-control" id="img" accept="image/*">
+                        <div id="image-preview" class="mt-3 d-none d-flex justify-content-center align-items-center">
+                            <img id="preview-img" src="" alt="Image Preview" style="max-width: 100%; max-height: 200px;">
+                        </div>
+                    </div>
+                    <div class="form-check float-end">
+                        <input class="form-check-input" type="checkbox" value="" id="publish" checked>
+                        <label class="form-check-label" for="publish">
+                            Công khai sản phẩm
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="createAndUpdateButton">Tạo và sửa sản phẩm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteModalLabel">Xóa sản phẩm</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa sản phẩm này?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-danger" onclick="del()">Xóa sản phẩm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="showModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="showModalLabel">Thông tin sản phẩm</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12 col-lg-4">
+                                <img src="" alt="Some picture" id="show_img" class="img-fluid"/>
+                            </div>
+                            <div class="col-12 col-lg-8">
+                                <h3 class="h2" id="show_title">Some title</h3>
+                                <p class="h5">Đã bán <span id="show_sold">0</span> | Còn lại <span id="show_stock">0</span></p>
+                                <p class="h3" id="show_price"></p>
+                            </div>
+                        </div>
+                        <div class="row mt-2" id="show_description"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script
+    src="https://cdn.ckeditor.com/ckeditor5/45.2.1/ckeditor5.umd.js"
+    crossorigin
+></script>
+<script src="~/js/product.js"></script>

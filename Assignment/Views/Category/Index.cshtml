@@ -1,0 +1,88 @@
+﻿@{
+    ViewData["Title"] = "Quản lý danh mục sản phẩm";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <h1 class="h1">
+            Quản lý danh mục sản phẩm
+            <div class="float-end align-items-center">
+                <button class="btn btn-primary" onclick="startCreate()" data-bs-toggle="modal" data-bs-target="#createAndUpdateModal">Tạo danh mục mới</button>
+            </div>
+        </h1>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col-md-6 offset-md-3"> <div class="input-group">
+                <input type="text" class="form-control" id="search" placeholder="Tìm kiếm...">
+                <button class="btn btn-primary" type="button" onclick="Search()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Tiêu đề</th>
+                <th scope="col">Mô tả</th>
+                <th scope="col">Độ ưu tiên</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody id="CategoryData"></tbody>
+        </table>
+    </div>
+</div>
+
+<div>
+    <div class="modal fade" id="createAndUpdateModal" tabindex="-1" aria-labelledby="createAndUpdateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="createAndUpdateModalLabel">Tạo và sửa danh mục</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Tên danh mục</label>
+                        <input type="text" class="form-control" id="name" placeholder="ví dụ: Đồ ăn nhanh">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Mô tả danh mục (Tùy chọn)</label>
+                        <input type="text" class="form-control" id="description" placeholder="ví dụ: Đồ ăn ngon :)">
+                    </div>
+                    <div class="mb-3">
+                        <label for="index" class="form-label">Độ ưu tiên danh mục</label>
+                        <input type="number" class="form-control" id="index" value="1" placeholder="ví dụ: 1 (1 là độ ưu tiên cao nhất)">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="createAndUpdateButton">Tạo và sửa danh mục</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteModalLabel">Xóa danh mục</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa danh mục này?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-danger" onclick="del()">Xóa danh mục</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/category.js"></script>
