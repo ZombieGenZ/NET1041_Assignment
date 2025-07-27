@@ -145,6 +145,16 @@ namespace Assignment.Controllers
                     });
                 }
 
+                if (product.Longitude > 180 || product.Latitude > 90 ||
+                    product.Longitude < -180 || product.Latitude < -90)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Kinh độ và vĩ độ không hợp lệ"
+                    });
+                }
+
                 var existCategory = _context.Categories.FirstOrDefault(c => c.Id == product.CategoryId);
                 if (existCategory == null)
                 {
@@ -322,6 +332,16 @@ namespace Assignment.Controllers
                     {
                         code = "INPUT_DATA_ERROR",
                         message = "Số calo của sản phẩm không hợp lệ"
+                    });
+                }
+
+                if (product.Longitude > 180 || product.Latitude > 90 ||
+                    product.Longitude < -180 || product.Latitude < -90)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Kinh độ và vĩ độ không hợp lệ"
                     });
                 }
 

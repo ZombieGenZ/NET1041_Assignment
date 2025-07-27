@@ -122,6 +122,8 @@ function LoadData(search) {
             item.preparationTime
           }, ${item.calories}, "${item.ingredients}", ${item.isSpicy}, ${
             item.isVegetarian
+          }, ${item.totalEvaluate}, ${
+            item.averageEvaluate
           })' data-bs-toggle="modal" data-bs-target="#showModal">Xem</button>
                                 <button class="btn btn-warning" onclick='startUpdate(${
                                   item.id
@@ -131,8 +133,8 @@ function LoadData(search) {
             item.isPublish
           }, ${item.preparationTime}, ${item.calories}, "${
             item.ingredients
-          }", ${item.isSpicy}, ${
-            item.isVegetarian
+          }", ${item.isSpicy}, ${item.isVegetarian}, ${item.longitude}, ${
+            item.latitude
           })' data-bs-toggle="modal" data-bs-target="#createAndUpdateModal">Sửa</button>
                                 <button class="btn btn-danger" onClick='startDelete(${
                                   item.id
@@ -181,7 +183,9 @@ function startShow(
   calories,
   ingredients,
   isSpicy,
-  isVegetarian
+  isVegetarian,
+  totalEvaluate,
+  averageEvaluate
 ) {
   document.getElementById("show_img").src = imgPath;
   document.getElementById("show_img").alt = name;
@@ -193,10 +197,11 @@ function startShow(
           style: "currency",
           currency: "VND",
         })}</span>`
-      : `<span>${(price - (price * discount) / 100).toLocaleString("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        })}</span> <del class="text-secondary"><span id="show_price">${price.toLocaleString(
+      : `<span class="badge bg-danger">${discount}%</span>
+      <span>${(price - (price * discount) / 100).toLocaleString("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      })}</span> <del class="text-secondary"><span id="show_price">${price.toLocaleString(
           "vi-VN",
           {
             style: "currency",
@@ -207,6 +212,29 @@ function startShow(
   document.getElementById("show_sold").innerHTML = sold.toLocaleString("vi-VN");
   document.getElementById("show_stock").innerHTML =
     stock.toLocaleString("vi-VN");
+  document.getElementById("show_isVegetarian").innerHTML = isVegetarian
+    ? "Món chay"
+    : "Món mặn";
+  document.getElementById("show_isSpicy").innerHTML = isSpicy
+    ? "Cay"
+    : "Không cay";
+  document.getElementById("show_preparationTime").textContent = preparationTime;
+  document.getElementById("show_calories").innerHTML = calories;
+  document.getElementById("show_ingredients").innerHTML = ingredients;
+  let htmlString = "";
+  htmlString += `<span>${averageEvaluate}</span> `;
+  for (let i = 1; i <= 5; i++) {
+    if (totalEvaluate >= i) {
+      htmlString += '<i class="fa-solid fa-star text-warning"></i>';
+    } else if (totalEvaluate >= i - 0.5) {
+      htmlString +=
+        '<i class="fa-regular fa-star-half-stroke text-warning"></i>';
+    } else {
+      htmlString += '<i class="fa-regular fa-star text-warning"></i>';
+    }
+  }
+  htmlString += `<span> | ${totalEvaluate} lượt đánh giá</span>`;
+  document.getElementById("show_raiting").innerHTML = htmlString;
 }
 
 function startCreate() {
@@ -220,6 +248,7 @@ function startCreate() {
   document
     .getElementById("createAndUpdateButton")
     .addEventListener("click", create);
+  resetToCurrentLocation();
 }
 
 function create() {
@@ -297,6 +326,11 @@ function create() {
     return;
   }
 
+  if (!isValidLongitude(selectedLng) || !isValidLatitude(selectedLat)) {
+    showWarningToast(`Vị trí giao hàng không hợp lệ`, 4000);
+    return;
+  }
+
   if (!category) {
     showWarningToast(`Vui lòng chọn danh mục cho sản phẩm`, 4000);
     return;
@@ -316,6 +350,8 @@ function create() {
   formData.append("Ingredients", ingredients);
   formData.append("IsSpicy", isSpicy);
   formData.append("IsVegetarian", isVegetarian);
+  formData.append("LongitudeStr", getSelectedLocation()?.lng.toString());
+  formData.append("LatitudeStr", getSelectedLocation()?.lat.toString());
 
   fetch("/api/products", {
     method: "POST",
@@ -379,7 +415,9 @@ function startUpdate(
   calories,
   ingredients,
   isSpicy,
-  isVegetarian
+  isVegetarian,
+  longitude,
+  latitude
 ) {
   clearEvent();
   clearClass();
@@ -406,6 +444,7 @@ function startUpdate(
   document.getElementById("ingredients").value = ingredients;
   document.getElementById("isSpicy").checked = isSpicy;
   document.getElementById("isVegetarian").checked = isVegetarian;
+  setLocation(latitude, longitude);
 }
 
 function update() {
@@ -478,6 +517,11 @@ function update() {
     return;
   }
 
+  if (!isValidLongitude(selectedLng) || !isValidLatitude(selectedLat)) {
+    showWarningToast(`Vị trí giao hàng không hợp lệ`, 4000);
+    return;
+  }
+
   if (!category) {
     showWarningToast(`Vui lòng chọn danh mục cho sản phẩm`, 4000);
     return;
@@ -499,6 +543,8 @@ function update() {
   formData.append("Ingredients", ingredients);
   formData.append("IsSpicy", isSpicy);
   formData.append("IsVegetarian", isVegetarian);
+  formData.append("LongitudeStr", getSelectedLocation()?.lng.toString());
+  formData.append("LatitudeStr", getSelectedLocation()?.lat.toString());
 
   fetch(`/api/products/${selectedId}`, {
     method: "PUT",
@@ -633,6 +679,238 @@ function clearInput() {
   document.getElementById("ingredients").value = "";
   document.getElementById("isSpicy").checked = false;
   document.getElementById("isVegetarian").checked = false;
+}
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: {
+    version: 8,
+    sources: {
+      osm: {
+        type: "raster",
+        tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+        tileSize: 256,
+      },
+    },
+    layers: [
+      {
+        id: "osm",
+        type: "raster",
+        source: "osm",
+        minzoom: 0,
+        maxzoom: 19,
+      },
+    ],
+  },
+  center: [105.8542, 21.0285],
+  zoom: 13,
+});
+
+let marker;
+let currentLocationMarker;
+let selectedLat = null;
+let selectedLng = null;
+let currentLat = null;
+let currentLng = null;
+
+map.on("click", (e) => {
+  selectedLat = e.lngLat.lat;
+  selectedLng = e.lngLat.lng;
+
+  if (marker) marker.remove();
+
+  marker = new maplibregl.Marker()
+    .setLngLat([selectedLng, selectedLat])
+    .addTo(map);
+});
+
+map.on("load", () => {
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const lng = position.coords.longitude;
+      const lat = position.coords.latitude;
+
+      currentLat = lat;
+      currentLng = lng;
+
+      map.flyTo({
+        center: [lng, lat],
+        zoom: 15,
+        essential: true,
+      });
+
+      currentLocationMarker = new maplibregl.Marker({
+        color: "#3333FF",
+      })
+        .setLngLat([lng, lat])
+        .addTo(map);
+    });
+  }
+});
+
+/**
+ * Đặt vị trí trên bản đồ (marker màu xanh)
+ * @param {number} lat - Vĩ độ
+ * @param {number} lng - Kinh độ
+ * @param {Object} options - Tùy chọn
+ */
+function setLocation(lat, lng, options = {}) {
+  if (!isValidLatitude(lat) || !isValidLongitude(lng)) {
+    console.error("Tọa độ không hợp lệ!");
+    return false;
+  }
+
+  selectedLat = lat;
+  selectedLng = lng;
+
+  if (marker) marker.remove();
+
+  if (currentLocationMarker) {
+    currentLocationMarker.remove();
+    currentLocationMarker = null;
+  }
+
+  marker = new maplibregl.Marker({
+    color: "#3333FF",
+  })
+    .setLngLat([lng, lat])
+    .addTo(map);
+
+  if (options.flyTo !== false) {
+    map.flyTo({
+      center: [lng, lat],
+      zoom: options.zoom || 15,
+      essential: true,
+    });
+  }
+
+  return true;
+}
+
+/**
+ * Lấy tọa độ đã chọn
+ * @returns {Object|null} {lat, lng} hoặc null nếu chưa chọn
+ */
+function getSelectedLocation() {
+  if (selectedLat !== null && selectedLng !== null) {
+    return {
+      lat: selectedLat,
+      lng: selectedLng,
+    };
+  }
+  return null;
+}
+
+/**
+ * Reset về trạng thái ban đầu (như lúc load)
+ */
+function resetToCurrentLocation() {
+  if (currentLat !== null && currentLng !== null) {
+    if (marker) {
+      marker.remove();
+      marker = null;
+    }
+
+    selectedLat = null;
+    selectedLng = null;
+
+    map.flyTo({
+      center: [currentLng, currentLat],
+      zoom: 15,
+      essential: true,
+    });
+
+    if (!currentLocationMarker) {
+      currentLocationMarker = new maplibregl.Marker({
+        color: "#3333FF",
+      })
+        .setLngLat([currentLng, currentLat])
+        .addTo(map);
+    }
+  }
+}
+
+/**
+ * Reset hoàn toàn (xóa tất cả marker và về vị trí mặc định)
+ */
+function resetToDefault() {
+  // Xóa tất cả marker
+  if (marker) {
+    marker.remove();
+    marker = null;
+  }
+  if (currentLocationMarker) {
+    currentLocationMarker.remove();
+    currentLocationMarker = null;
+  }
+
+  selectedLat = null;
+  selectedLng = null;
+
+  map.flyTo({
+    center: [105.8542, 21.0285],
+    zoom: 13,
+    essential: true,
+  });
+}
+
+/**
+ * Validate vĩ độ
+ * @param {number} lat
+ * @returns {boolean}
+ */
+function isValidLatitude(lat) {
+  return (
+    lat !== null &&
+    lat !== undefined &&
+    !isNaN(Number(lat)) &&
+    lat >= -90 &&
+    lat <= 90
+  );
+}
+
+/**
+ * Validate kinh độ
+ * @param {number} lng
+ * @returns {boolean}
+ */
+function isValidLongitude(lng) {
+  return (
+    lng !== null &&
+    lng !== undefined &&
+    !isNaN(Number(lng)) &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
+
+/**
+ * Đặt nhiều marker cùng lúc
+ * @param {Array} locations - Mảng các {lat, lng, color?, popup?}
+ */
+function setMultipleLocations(locations) {
+  const markers = [];
+
+  locations.forEach((location, index) => {
+    if (isValidLatitude(location.lat) && isValidLongitude(location.lng)) {
+      const marker = new maplibregl.Marker({
+        color: location.color || "#FF0000",
+      })
+        .setLngLat([location.lng, location.lat])
+        .addTo(map);
+
+      if (location.popup) {
+        const popup = new maplibregl.Popup({ offset: 25 }).setText(
+          location.popup
+        );
+        marker.setPopup(popup);
+      }
+
+      markers.push(marker);
+    }
+  });
+
+  return markers;
 }
 
 /**
