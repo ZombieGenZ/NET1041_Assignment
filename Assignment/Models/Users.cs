@@ -30,6 +30,9 @@ namespace Assignment.Models
         [DefaultValue(0)]
         public long TotalAccumulatedPoints { get; set; } = 0;
         [Required]
+        [DefaultValue(0)]
+        public long AccumulatedPoints { get; set; } = 0;
+        [Required]
         [DefaultValue(UserRankEnum.None)]
         public UserRankEnum Rank { get; set; } = UserRankEnum.None;
         [Required]
@@ -40,9 +43,9 @@ namespace Assignment.Models
         [StringLength(500)]
         public string? FacebookId { get; set; } = null;
         [StringLength(500)]
-        public string? GitHubId { get; set; }
+        public string? GitHubId { get; set; } = null;
         [StringLength(500)]
-        public string? DiscordId { get; set; }
+        public string? DiscordId { get; set; } = null;
         [StringLength(50)]
         [DefaultValue("Default")]
         public string MainProvider { get; set; } = "Default";

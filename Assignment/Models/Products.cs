@@ -61,14 +61,6 @@ namespace Assignment.Models
         [DefaultValue("")]
         public string MetaTag { get; set; } = "";
         [Required]
-        [DefaultValue(0)]
-        [Range(-180, 180)]
-        public double Longitude { get; set; } = 0; // Kinh độ
-        [Required]
-        [DefaultValue(0)]
-        [Range(-90, 90)]
-        public double Latitude { get; set; } = 0; // Vĩ độ
-        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;

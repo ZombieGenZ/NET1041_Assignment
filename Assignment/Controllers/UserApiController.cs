@@ -177,7 +177,7 @@ namespace Assignment.Controllers
                     newUser = new Users()
                     {
                         Name = user.Name,
-                        Email = user.Email,
+                        Email = user.Email.ToLower(),
                         Phone = user.Phone,
                         DateOfBirth = user.DateOfBirth,
                         GoogleId = user.GoogleId,
@@ -190,7 +190,7 @@ namespace Assignment.Controllers
                     newUser = new Users()
                     {
                         Name = user.Name,
-                        Email = user.Email,
+                        Email = user.Email.ToLower(),
                         Phone = user.Phone,
                         DateOfBirth = user.DateOfBirth,
                         FacebookId = user.FacebookId,
@@ -203,7 +203,7 @@ namespace Assignment.Controllers
                     newUser = new Users()
                     {
                         Name = user.Name,
-                        Email = user.Email,
+                        Email = user.Email.ToLower(),
                         Phone = user.Phone,
                         DateOfBirth = user.DateOfBirth,
                         GitHubId = user.GithubId,
@@ -216,7 +216,7 @@ namespace Assignment.Controllers
                     newUser = new Users()
                     {
                         Name = user.Name,
-                        Email = user.Email,
+                        Email = user.Email.ToLower(),
                         Phone = user.Phone,
                         DateOfBirth = user.DateOfBirth,
                         DiscordId = user.DiscordId,
@@ -229,7 +229,7 @@ namespace Assignment.Controllers
                     newUser = new Users()
                     {
                         Name = user.Name,
-                        Email = user.Email,
+                        Email = user.Email.ToLower(),
                         Phone = user.Phone,
                         DateOfBirth = user.DateOfBirth,
                         Password = EncryptionHelper.EncryptToSHA512(user.Password)
@@ -244,7 +244,7 @@ namespace Assignment.Controllers
                     newUser.Id,
                     newUser.Name,
                     newUser.Role,
-                    newUser.Email,
+                    newUser.Email.ToLower(),
                     newUser.Phone,
                     newUser.DateOfBirth
                 );
@@ -314,7 +314,7 @@ namespace Assignment.Controllers
                 }
 
                 Users? userEntity = _context.Users.FirstOrDefault(u =>
-                    (u.Email == user.EmailOrPhone || u.Phone == user.EmailOrPhone) &&
+                    (u.Email.ToLower() == user.EmailOrPhone.ToLower() || u.Phone == user.EmailOrPhone) &&
                     u.Password == EncryptionHelper.EncryptToSHA512(user.Password));
 
                 if (userEntity == null)
@@ -331,7 +331,7 @@ namespace Assignment.Controllers
                     userEntity.Id,
                     userEntity.Name,
                     userEntity.Role,
-                    userEntity.Email,
+                    userEntity.Email.ToLower(),
                     userEntity.Phone,
                     userEntity.DateOfBirth
                 );

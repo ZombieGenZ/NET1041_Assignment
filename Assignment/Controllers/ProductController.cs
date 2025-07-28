@@ -33,59 +33,6 @@ namespace Assignment.Controllers
             return View(product);
         }
         [HttpGet]
-        [Route("products/search")]
-        public IActionResult Search([FromQuery] string? text, [FromQuery] double? min, [FromQuery] double? max)
-        {
-            var query = _context.Products.AsQueryable();
-
-            SearchProductViewModel searchProductViewModel = new SearchProductViewModel();
-            bool isSearch = false;
-
-            if (!string.IsNullOrWhiteSpace(text))
-            {
-                var searchTerms = text.Split('+', StringSplitOptions.RemoveEmptyEntries);
-
-                foreach (var term in searchTerms)
-                {
-                    var lowerCaseTerm = term.ToLower();
-
-                    query = query.Where(p => p.Name.ToLower().Contains(lowerCaseTerm) || p.Description.ToLower().Contains(lowerCaseTerm));
-                }
-
-                searchProductViewModel.Text = text.Replace("+", " ");
-                isSearch = true;
-            }
-
-            if (min.HasValue)
-            {
-                query = query.Where(p => p.Price >= min.Value);
-                searchProductViewModel.Min = min.Value;
-                isSearch = true;
-            }
-
-            if (max.HasValue)
-            {
-                query = query.Where(p => p.Price <= max.Value);
-                searchProductViewModel.Max = max.Value;
-                isSearch = true;
-            }
-
-            var products = query.Include(p => p.Category).ToList();
-
-            var productsByCategory = products
-                .GroupBy(p => p.Category)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            searchProductViewModel.Data = productsByCategory;
-
-            if (isSearch)
-            {
-                return View(searchProductViewModel);
-            }
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpGet]
         [Route("history")]
         [Authorize]
         public IActionResult PurchaseHistory([FromQuery] DateTime? start, [FromQuery] DateTime? end, [FromQuery] OrderStatus? status)
@@ -102,7 +49,7 @@ namespace Assignment.Controllers
 
             if (start.HasValue && end.HasValue && start > end)
             {
-                query = query.Where(o => o.OrderTime >= start.Value && o.OrderTime <= end.Value);
+                query = query.Where(o => o.CreatedTime >= start.Value && o.CreatedTime <= end.Value);
                 searchPurchaseHistoryModel.StartTime = start.Value;
                 searchPurchaseHistoryModel.EndTime = end.Value;
             }
@@ -110,13 +57,13 @@ namespace Assignment.Controllers
             {
                 if (start.HasValue)
                 {
-                    query = query.Where(o => o.OrderTime >= start.Value);
+                    query = query.Where(o => o.CreatedTime >= start.Value);
                     searchPurchaseHistoryModel.StartTime = start.Value;
                 }
 
                 if (end.HasValue)
                 {
-                    query = query.Where(o => o.OrderTime <= end.Value);
+                    query = query.Where(o => o.CreatedTime <= end.Value);
                     searchPurchaseHistoryModel.EndTime = end.Value;
                 }
             }

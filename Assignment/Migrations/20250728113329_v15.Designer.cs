@@ -4,6 +4,7 @@ using Assignment.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Assignment.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250728113329_v15")]
+    partial class v15
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,6 +170,11 @@ namespace Assignment.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime2");
 
@@ -180,11 +188,15 @@ namespace Assignment.Migrations
                     b.Property<double>("FeeExcludingTax")
                         .HasColumnType("float");
 
-                    b.Property<double>("Latitude")
-                        .HasColumnType("float");
+                    b.Property<string>("Latitude")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<double>("Longitude")
-                        .HasColumnType("float");
+                    b.Property<string>("Longitude")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -199,11 +211,11 @@ namespace Assignment.Migrations
                     b.Property<long?>("ProductsId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ShipperId")
-                        .HasColumnType("bigint");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<double>("Tax")
+                        .HasColumnType("float");
 
                     b.Property<double>("TotalBill")
                         .HasColumnType("float");
@@ -226,8 +238,6 @@ namespace Assignment.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductsId");
-
-                    b.HasIndex("ShipperId");
 
                     b.HasIndex("UserId");
 
@@ -274,6 +284,12 @@ namespace Assignment.Migrations
 
                     b.Property<bool>("IsVegetarian")
                         .HasColumnType("bit");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("MetaTag")
                         .IsRequired()
@@ -332,9 +348,6 @@ namespace Assignment.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("AccumulatedPoints")
-                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -519,15 +532,9 @@ namespace Assignment.Migrations
                         .WithMany("Orders")
                         .HasForeignKey("ProductsId");
 
-                    b.HasOne("Assignment.Models.Users", "Shipper")
-                        .WithMany()
-                        .HasForeignKey("ShipperId");
-
                     b.HasOne("Assignment.Models.Users", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
-
-                    b.Navigation("Shipper");
 
                     b.Navigation("User");
                 });

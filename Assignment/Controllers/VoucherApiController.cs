@@ -246,7 +246,7 @@ namespace Assignment.Controllers
                 
                 Vouchers newVouchers = new Vouchers
                 {
-                    Code = voucher.AutoGeneratorCode ? RandomStringGenerator.GenerateRandomAlphanumericString() : voucher.Code,
+                    Code = voucher.AutoGeneratorCode ? RandomStringGenerator.GenerateRandomAlphanumericString() : voucher.Code.Replace(" ", "").ToUpper(),
                     Name = voucher.Name,
                     Description = voucher.Description,
                     Type = voucher.Type,
@@ -454,7 +454,7 @@ namespace Assignment.Controllers
                     }
                 }
 
-                existingVoucher.Code = voucher.Code;
+                existingVoucher.Code = voucher.Code.Replace(" ", "").ToUpper();
                 existingVoucher.Name = voucher.Name;
                 existingVoucher.Description = voucher.Description;
                 existingVoucher.Type = voucher.Type;

@@ -20,10 +20,8 @@ namespace Assignment.Utilities
 
         public async Task<string> GenerateContentAsync(string prompt)
         {
-            // Đảm bảo model name đúng format, ví dụ: gemini-1.5-flash, gemini-1.5-pro
             string normalizedModelName = _modelName.StartsWith("models/") ? _modelName : $"models/{_modelName}";
 
-            // URL API chính xác cho Gemini
             string apiUrl = $"https://generativelanguage.googleapis.com/v1beta/{normalizedModelName}:generateContent?key={_apiKey}";
 
             var requestBody = new
@@ -47,7 +45,6 @@ namespace Assignment.Utilities
             {
                 HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
 
-                // Log URL và response để debug
                 if (!response.IsSuccessStatusCode)
                 {
                     string errorContent = await response.Content.ReadAsStringAsync();
@@ -79,7 +76,6 @@ namespace Assignment.Utilities
             }
         }
 
-        // Method để dispose HttpClient khi không cần thiết
         public void Dispose()
         {
             _httpClient?.Dispose();

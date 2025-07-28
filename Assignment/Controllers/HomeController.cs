@@ -17,15 +17,46 @@ namespace Assignment.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index([FromQuery] string? text, [FromQuery] double? min, [FromQuery] double? max)
         {
-            var products = _context.Products.Where(p => p.IsPublish).Include(p => p.Category).ToList();
+            var query = _context.Products.AsQueryable();
+
+            SearchProductViewModel searchProductViewModel = new SearchProductViewModel();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                var searchTerms = text.Split('+', StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var term in searchTerms)
+                {
+                    var lowerCaseTerm = term.ToLower();
+
+                    query = query.Where(p => p.Name.ToLower().Contains(lowerCaseTerm) || p.Description.ToLower().Contains(lowerCaseTerm));
+                }
+
+                searchProductViewModel.Text = text.Replace("+", " ");
+            }
+
+            if (min.HasValue)
+            {
+                query = query.Where(p => p.Price >= min.Value);
+                searchProductViewModel.Min = min.Value;
+            }
+
+            if (max.HasValue)
+            {
+                query = query.Where(p => p.Price <= max.Value);
+                searchProductViewModel.Max = max.Value;
+            }
+
+            var products = query.Include(p => p.Category).ToList();
 
             var productsByCategory = products
                 .GroupBy(p => p.Category)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            return View(productsByCategory);
+            searchProductViewModel.Data = productsByCategory;
+
+            return View(searchProductViewModel);
         }
 
         public IActionResult Cart()

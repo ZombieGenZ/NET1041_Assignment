@@ -11,14 +11,16 @@ namespace Assignment.Controllers
     public class OrderApiController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public OrderApiController(ApplicationDbContext context)
+        private readonly GeminiApiClient _geminiApiClient;
+        public OrderApiController(ApplicationDbContext context, GeminiApiClient geminiApiClient)
         {
             _context = context;
+            _geminiApiClient = geminiApiClient;
         }
         [HttpPost]
         [Route("api/orders")]
         [Authorize]
-        public IActionResult Orders([FromBody] OrderBase order)
+        public async Task<IActionResult> Orders([FromBody] OrderBase order)
         {
             try
             {
@@ -91,6 +93,7 @@ namespace Assignment.Controllers
                 List<Products> productsList = new List<Products>();
                 List<long> productErrorWithId = new List<long>();
                 List<Products> productErrorWithStock = new List<Products>();
+                List<ProductListReturnBill> listReturnBills = new List<ProductListReturnBill>();
                 long totalQuantity = 0;
                 double totalPrice = 0;
                 foreach (OrderWithQuantity product in mergedItems)
@@ -111,6 +114,13 @@ namespace Assignment.Controllers
                             productsList.Add(exitingProduct);
                             totalQuantity += product.Quantity;
                             totalPrice += exitingProduct.Price * product.Quantity;
+                            listReturnBills.Add(new ProductListReturnBill
+                            {
+                                Name = exitingProduct.Name,
+                                Price = exitingProduct.Price,
+                                Quantity = product.Quantity,
+                                Discount = exitingProduct.Discount
+                            });
                         }
                     }
                 }
@@ -145,20 +155,129 @@ namespace Assignment.Controllers
                     });
                 }
 
+                double oldPrice = totalPrice;
+
+                if (order.Voucher != null)
+                {
+                    var voucher = await _context.Vouchers
+                        .FirstOrDefaultAsync(v =>
+                            v.Code == order.Voucher &&
+                            (v.Type == VoucherTypeEnum.Public ||
+                             (v.Type == VoucherTypeEnum.Private && v.UserId == userId)) &&
+                            v.StartTime <= DateTime.Now &&
+                            (v.IsLifeTime || v.EndTime >= DateTime.Now) && 
+                            v.Quantity > 0);
+
+                    if (voucher == null)
+                    {
+                        return UnprocessableEntity(new
+                        {
+                            code = "INPUT_DATA_ERROR",
+                            message = "Mã giảm giá không hợp lệ"
+                        });
+                    }
+
+                    if (voucher.MinimumRequirements > totalPrice)
+                    {
+                        return UnprocessableEntity(new
+                        {
+                            code = "INPUT_DATA_ERROR",
+                            message = $"Đơn hàng của bạn chưa đủ điều kiện để sử dụng mã giảm giá {voucher.Code}"
+                        });
+                    }
+
+                    if (voucher.DiscountType == DiscountTypeEnum.Money)
+                    {
+                        totalPrice -= voucher.Discount;
+                    }
+                    else if (voucher.DiscountType == DiscountTypeEnum.Percent)
+                    {
+                        if (voucher.UnlimitedPercentageDiscount)
+                        {
+                            totalPrice -= totalPrice / 100 * voucher.Discount;
+                        }
+                        else
+                        {
+                            if (voucher.MaximumPercentageReduction.HasValue)
+                            {
+                                double discountAmount = totalPrice / 100 * voucher.Discount;
+                                if (discountAmount > voucher.MaximumPercentageReduction.Value)
+                                {
+                                    discountAmount = voucher.MaximumPercentageReduction.Value;
+                                }
+                                totalPrice -= discountAmount;
+                            }
+                            else
+                            {
+                                totalPrice -= totalPrice / 100 * voucher.Discount;
+                            }
+                        }
+                    }
+
+                    voucher.Used++;
+                    voucher.Quantity -= 1;
+                    _context.Vouchers.Update(voucher);
+                }
+
+                double discount = oldPrice - totalPrice;
+
+                if (totalPrice < 0)
+                {
+                    totalPrice = 0;
+                }
+
+                if (order.Longitude > 180 || order.Latitude > 90 ||
+                    order.Longitude < -180 || order.Latitude < -90)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Kinh độ và vĩ độ nhận hàng không hợp lệ"
+                    });
+                }
+
+                FeeGenerator feeGenerator = new FeeGenerator
+                {
+                    LatitudeDelivery = 10.793744,
+                    LongitudeDelivery = 107.135011,
+                    LatitudeReceiving = order.Latitude,
+                    LongitudeReceiving = order.Longitude
+                };
+
+                string feeStr = await _geminiApiClient.GenerateContentAsync(feeGenerator.ToString());
+                
+                if (string.IsNullOrEmpty(feeStr) || !double.TryParse(feeStr.Replace("\n", ""), out double fee) || fee < 0)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "FEE_CALCULATION_ERROR",
+                        message = "Không thể tính toán phí vận chuyển"
+                    });
+                }
+
+                double totalBill = totalPrice + fee + totalPrice * 0.1;
+
+                double vat = totalPrice * 0.1;
+
                 Orders orderEntity = new Orders
                 {
                     Name = order.Name,
                     Email = order.Email,
                     Phone = order.Phone,
+                    Latitude = order.Latitude,
+                    Longitude = order.Longitude,
+                    Fee = fee,
+                    FeeExcludingTax = fee * 0.9,
+                    TotalBill = totalBill,
                     Status = OrderStatus.Ordered,
                     TotalQuantity = totalQuantity,
                     TotalPrice = totalPrice,
-                    OrderTime = DateTime.Now,
+                    Vat = vat,
                     UserId = userId
                 };
 
                 _context.Orders.Add(orderEntity);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 List<OrderDetail> orderDetails = new List<OrderDetail>();
 
@@ -188,6 +307,16 @@ namespace Assignment.Controllers
                 {
                     code = "ORDER_SUCCESS",
                     message = "Đặt hàng thành công",
+                    orderId = $"DH{orderEntity.Id}",
+                    productList = listReturnBills,
+                    totalPrice,
+                    discount,
+                    totalBill,
+                    accountNo = "0978266980",
+                    accountName = "NGUYEN DUC ANH",
+                    bankId = "MBBank",
+                    vat,
+                    fee
                 });
             }
             catch (Exception e)

@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Assignment.Models
 {
@@ -7,8 +9,9 @@ namespace Assignment.Models
         public string Name { get; set; }
         public string? Email { get; set; }
         public string Phone { get; set; }
-        public string Longitude { get; set; }
-        public string Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double Latitude { get; set; }
+        public string? Voucher { get; set; }
         public List<OrderWithQuantity> Items { get; set; }
     }
 }

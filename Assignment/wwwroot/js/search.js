@@ -15,11 +15,7 @@
         params.push(`max=${maxValue}`);
 
     const queryString = params.length > 0 ? params.join("&") : "";
-    if (queryString) {
-        location.href = `/products/search?${queryString}`;
-    } else {
-        location.href = "/";
-    }
+    location.href = `/?${queryString}`;
 }
 
 function resetSearch() {
