@@ -39,7 +39,16 @@ function addToCart(id) {
   };
 
   const localCartData = localStorage.getItem("cart");
-  let cart = localCartData ? JSON.parse(localCartData) : [];
+  let cart = [];
+
+  try {
+      cart = localCartData ? JSON.parse(localCartData) : [];
+      if (!Array.isArray(cart)) {
+          cart = [];
+      }
+  } catch (e) {
+      cart = [];
+  }
 
   const existingItemIndex = cart.findIndex((item) => item.id === dataToCart.id);
 

@@ -1,10 +1,13 @@
-﻿using System.Diagnostics.Eventing.Reader;
-using Assignment.Enum;
+﻿using Assignment.Enum;
 using Assignment.Models;
+using Assignment.Service;
 using Assignment.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Assignment.Controllers
 {
@@ -12,10 +15,12 @@ namespace Assignment.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly GeminiApiClient _geminiApiClient;
-        public OrderApiController(ApplicationDbContext context, GeminiApiClient geminiApiClient)
+        private readonly IHubContext<RealtimeHub> _hubContext;
+        public OrderApiController(ApplicationDbContext context, GeminiApiClient geminiApiClient, IHubContext<RealtimeHub> hubContext)
         {
             _context = context;
             _geminiApiClient = geminiApiClient;
+            _hubContext = hubContext;
         }
         [HttpPost]
         [Route("api/orders")]
@@ -419,6 +424,108 @@ namespace Assignment.Controllers
                 return StatusCode(500, new
                 {
                     code = "ORDER_CANCELED_FAILURE",
+                    message = e.Message
+                });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/orders/checkout")]
+        public async Task<IActionResult> CheckOut([FromHeader] string authorization, [FromBody] SeaPayCheckOut body)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(authorization))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Apikey không hợp lệ"
+                    });
+                }
+
+                if (!authorization.StartsWith("Apikey "))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Apikey không hợp lệ"
+                    });
+                }
+
+                if (authorization.Split(' ')[1] != "&u%A)3v.4ckDX0qFrm6CObIFfJSXIHDTkUWFUD4tLSIEtNOqun")
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Apikey không hợp lệ"
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(body.code))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Nội dung thanh toán không hợp lệ"
+                    });
+                }
+
+                string orderIdStr = body.code.Substring(2);
+
+                if (!long.TryParse(orderIdStr, out long orderId))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Nội dung thanh toán không hợp lệ"
+                    });
+                }
+
+                var order = _context.Orders.FirstOrDefault(o => o.Id == orderId);
+
+                if (order == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Nội dung thanh toán không hợp lệ"
+                    });
+                }
+
+                if (body.transferAmount < order.TotalBill)
+                {
+                    // thêm code hoàn tiền sau
+
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Số tiền giao dịch không hợp lệ"
+                    });
+                }
+
+                order.Status = OrderStatus.Paid;
+                order.UpdatedTime = DateTime.Now;
+
+                _context.Update(order);
+                await _context.SaveChangesAsync();
+
+                await _hubContext.Clients.Groups(body.code).SendAsync("Paid", new
+                {
+                    ok = true
+                });
+
+                return Json(new
+                {
+                    code = "CHECKOUT_SUCCESS",
+                    message = "Thanh toán thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "CHECKOUT_FAILURE",
                     message = e.Message
                 });
             }

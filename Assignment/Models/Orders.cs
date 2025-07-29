@@ -50,7 +50,7 @@ namespace Assignment.Models
         public DateTime CreatedTime { get; set; } = DateTime.Now;
         [Required]
         public DateTime UpdatedTime { get; set; } = DateTime.Now;
-        public virtual Users User { get; set; }
+        public virtual Users? User { get; set; }
         public virtual Users? Shipper { get; set; }
         public long? UserId { get; set; }
         public long? ShipperId { get; set; }

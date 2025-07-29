@@ -266,12 +266,7 @@
                                 <div class="qr-code-section mb-4">
                                     <img id="paymentQrCode" alt="Payment QR Code">
                                 </div>
-                                <div class="status-section">
-                                    Trạng thái: Chờ thanh toán...
-                                    <div id="status" class="spinner-border spinner-border-sm text-secondary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
+                                <div id="status_payment"></div>
                             </div>
 
                             <div class="payment-card">
@@ -285,7 +280,7 @@
                                         <div class="col-7 text-end fw-bold" id="account_name"></div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-5 label">Số TK:</div>
+                                        <div class="col-5 label">Số tài khoản:</div>
                                         <div class="col-7 text-end fw-bold text-danger" id="account_no"></div>
                                     </div>
                                     <div class="row">
@@ -293,7 +288,7 @@
                                         <div class="col-7 text-end fw-bold text-danger" id="bill"></div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-5 label">Nội dung CK:</div>
+                                        <div class="col-5 label">Nội dung chuyển khoản:</div>
                                         <div class="col-7 text-end fw-bold text-danger" id="orderId"></div>
                                     </div>
                                 </div>
@@ -318,7 +313,7 @@
             </div>
         </div>
 
-        <button type="button" id="paymentModelBtn" onclick="startPayment" style="display: none" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paymentModal">
+        <button type="button" id="paymentModelBtn" style="display: none" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paymentModal">
             Open payment model
         </button>
     }
@@ -376,6 +371,7 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script src="~/js/buynow.js"></script>
 <script src="~/js/addCart.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/45.2.1/ckeditor5.umd.js" crossorigin></script>

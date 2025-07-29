@@ -68,7 +68,7 @@ namespace Assignment.Models
         public string ProductImageId { get; set; }
         public virtual Categories Category { get; set; }
         public long CategoryId { get; set; }
-        public virtual List<Orders> Orders { get; set; }
+        public virtual List<OrderDetail> OrderDetails { get; set; }
         public virtual List<Evaluates> Evaluates { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Assignment.Models;
+using Assignment.Service;
 using Assignment.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -149,6 +150,8 @@ builder.Services.Configure<GeminiSetting>(
 
 builder.Services.AddScoped<GeminiApiClient>();
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -172,5 +175,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<RealtimeHub>("/realtime-hub");
 
 app.Run();

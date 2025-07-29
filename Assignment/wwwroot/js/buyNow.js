@@ -1,5 +1,77 @@
 ﻿let selectedId = 0;
 let selectedPrice = 0;
+let orderId = "";
+
+let connection = null;
+window.addEventListener('load', function () {
+    initConnection();
+});
+window.addEventListener('beforeunload', function () {
+    if (connection) {
+        connection.stop();
+    }
+});
+
+function initConnection() {
+    connection = new signalR.HubConnectionBuilder()
+        .withUrl("/realtime-hub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.onreconnected(() => {
+        // xử lý sự kiện khi kết nối lại thành công
+    });
+
+    connection.onclose(() => {
+        // xử lý sự kiện khi mất kết nối
+    });
+}
+
+async function connectPaymentRealtime()
+{
+    try {
+        await connection.start();
+
+        if (!connection) {
+            return;
+        }
+
+        await connection.invoke("ConnectPaymentTracking", orderId);
+
+        connection.off("Paid");
+
+        connection.on("Paid", (data) => {
+            if (data.ok) {
+                document.getElementById("status_payment").innerHTML = `
+               
+                                        <div class="status-section">
+                                        Trạng thái: Đã thanh toán&nbsp;
+                                        <span style="color: green; font-size: 1.2em;"><i class="fa-solid fa-circle-check"></i></span>
+                                    </div>
+                `;
+                showSuccessToast("Thanh toán thành công!");
+            }
+        });
+    } catch (e) {
+        console.log(e);
+    } 
+}
+
+async function leavePaymentRealtime() {
+    try {
+        await connection.stop();
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var paymentModal = document.getElementById('paymentModal');
+    paymentModal.addEventListener('hidden.bs.modal', function () {
+        leavePaymentRealtime();
+    });
+});
+
 function startBuyNow(id, name, price) {
   selectedId = id;
   selectedPrice = price;
@@ -184,7 +256,18 @@ function buyNow() {
               : `${(item.quantity * item.price).toLocaleString("vi-VN")} ₫`
           }</span></li>`;
         }
-        document.getElementById("listProduct").innerHTML = listProduct;
+          document.getElementById("listProduct").innerHTML = listProduct;
+          document.getElementById("status_payment").innerHTML = `
+                                    <div class="status-section">
+                                        Trạng thái: Chờ thanh toán...
+                                        <div id="status" class="spinner-border spinner-border-sm text-secondary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                   
+          `;
+          orderId = data.orderId;
+          connectPaymentRealtime();
         document.getElementById("paymentModelBtn").click();
         return;
       } else {

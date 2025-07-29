@@ -409,7 +409,7 @@ namespace Assignment.Controllers
         {
             try
             {
-                var existingProduct = _context.Products.Include(products => products.Orders).FirstOrDefault(c => c.Id == id);
+                var existingProduct = _context.Products.Include(products => products.OrderDetails).FirstOrDefault(c => c.Id == id);
                 if (existingProduct == null)
                 {
                     return NotFound(new
@@ -419,7 +419,7 @@ namespace Assignment.Controllers
                     });
                 }
 
-                if (existingProduct.Orders.Count > 0)
+                if (existingProduct.OrderDetails.Count > 0)
                 {
                     return UnprocessableEntity(
                         new
