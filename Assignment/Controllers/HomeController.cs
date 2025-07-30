@@ -59,6 +59,8 @@ namespace Assignment.Controllers
             return View(searchProductViewModel);
         }
 
+        [HttpGet]
+        [Route("cart")]
         public IActionResult Cart()
         {
             return View();

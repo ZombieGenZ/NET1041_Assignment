@@ -88,7 +88,15 @@ namespace Assignment.Controllers
                     });
                 }
 
-                // Thêm đánh giá mới
+                if (_context.Evaluates.Any(e => e.UserId == userId && e.ProductId == evaluates.ProductId))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Bạn đã đánh giá cho sản phẩm này rồi"
+                    });
+                }
+
                 var newEvaluate = new Evaluates
                 {
                     UserId = userId.Value,

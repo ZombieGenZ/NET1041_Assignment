@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics.Eventing.Reader;
 
 namespace Assignment.Controllers
 {
@@ -166,7 +164,7 @@ namespace Assignment.Controllers
                 {
                     var voucher = await _context.Vouchers
                         .FirstOrDefaultAsync(v =>
-                            v.Code == order.Voucher &&
+                            v.Code == order.Voucher.Trim().Replace(" ", "") &&
                             (v.Type == VoucherTypeEnum.Public ||
                              (v.Type == VoucherTypeEnum.Private && v.UserId == userId)) &&
                             v.StartTime <= DateTime.Now &&
@@ -277,6 +275,7 @@ namespace Assignment.Controllers
                     Status = OrderStatus.Ordered,
                     TotalQuantity = totalQuantity,
                     TotalPrice = totalPrice,
+                    Discount = discount,
                     Vat = vat,
                     UserId = userId
                 };
@@ -292,7 +291,7 @@ namespace Assignment.Controllers
                     {
                         OrderId = orderEntity.Id,
                         ProductId = item.Id,
-                        PricePreItems = item.Price,
+                        PricePreItems = item.Price - item.Price / 100 * item.Discount,
                         TotalQuantityPreItems = mergedItems.First(i => i.ProductId == item.Id).Quantity,
                         TotalPricePreItems = mergedItems.First(i => i.ProductId == item.Id).Quantity * item.Price
                     });
@@ -334,13 +333,181 @@ namespace Assignment.Controllers
             }
         }
         [HttpPut]
-        [Route("api/orders/complete/{id:long}")]
+        [Route("api/orders/confirm/{id:long}")]
         [Authorize(Policy = "AdminPolicy")]
-        public IActionResult CompleteOrder(long id)
+        public IActionResult ConfirmOrder(long id)
         {
             try
             {
-                var exitingOrder = _context.Orders.FirstOrDefault(o => o.Id == id && o.Status == OrderStatus.Ordered);
+                var exitingOrder = _context.Orders.FirstOrDefault(o => o.Id == id && o.Status == OrderStatus.Paid);
+                if (exitingOrder == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Đơn hàng không tồn tại"
+                    });
+                }
+
+                exitingOrder.Status = OrderStatus.Confirmed;
+                _context.Orders.Update(exitingOrder);
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    code = "ORDER_CONFIRM_SUCCESS",
+                    message = "Đơn hàng đã được xác nhận thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "ORDER_CONFIRM_FAILURE",
+                    message = e.Message
+                });
+            }
+        }
+        [HttpPut]
+        [Route("api/orders/confirm-transport/{id:long}")]
+        [Authorize(Policy = "ShipperPolicy")]
+        public IActionResult ConfirmTransportOrder(long id)
+        {
+            try
+            {
+                var currentUser = HttpContext.User;
+                var userId = CookieAuthHelper.GetUserId(currentUser);
+
+                if (userId == null)
+                {
+                    return Unauthorized(new
+                    {
+                        code = "UNAUTHORIZED",
+                        message = "Bạn cần đăng nhập để thực hiện xác nhận giao hàng"
+                    });
+                }
+
+                var exitingOrder = _context.Orders.FirstOrDefault(o => o.Id == id && o.Status == OrderStatus.Confirmed && o.ShipperId == null);
+                if (exitingOrder == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Đơn hàng không tồn tại"
+                    });
+                }
+
+                exitingOrder.Status = OrderStatus.Delivery;
+                _context.Orders.Update(exitingOrder);
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    code = "ORDER_CONFIRM_TRANSPORT_SUCCESS",
+                    message = "Đơn hàng đã được xác nhận giao hàng"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "ORDER_CONFIRM_TRANSPORT_FAILURE",
+                    message = e.Message
+                });
+            }
+        }
+        [HttpPut]
+        [Route("api/orders/cancel-transport/{id:long}")]
+        [Authorize(Policy = "ShipperPolicy")]
+        public IActionResult CancelTransportOrder(long id)
+        {
+            try
+            {
+                var currentUser = HttpContext.User;
+                var userId = CookieAuthHelper.GetUserId(currentUser);
+                var userRole = CookieAuthHelper.GetRole(currentUser);
+
+                if (userId == null)
+                {
+                    return Unauthorized(new
+                    {
+                        code = "UNAUTHORIZED",
+                        message = "Bạn cần đăng nhập để thực hiện hủy giao hàng"
+                    });
+                }
+
+                Orders? exitingOrder;
+                if (userRole == "Admin")
+                {
+                    exitingOrder = _context.Orders.FirstOrDefault(o =>
+                        o.Id == id && o.Status == OrderStatus.Delivery);
+                }
+                else
+                {
+                    exitingOrder = _context.Orders.FirstOrDefault(o =>
+                        o.Id == id && o.Status == OrderStatus.Delivery && o.ShipperId == userId);
+                }
+
+                if (exitingOrder == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Đơn hàng không tồn tại"
+                    });
+                }
+
+                exitingOrder.Status = OrderStatus.Confirmed;
+                _context.Orders.Update(exitingOrder);
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    code = "ORDER_CANCEL_TRANSPORT_SUCCESS",
+                    message = "Đơn hàng đã bị hủy giao hàng thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "ORDER_CANCEL_TRANSPORT_FAILURE",
+                    message = e.Message
+                });
+            }
+        }
+        [HttpPut]
+        [Route("api/orders/complete/{id:long}")]
+        [Authorize(Policy = "ShipperPolicy")]
+        public IActionResult CompleteTransportOrder(long id)
+        {
+            try
+            {
+                var currentUser = HttpContext.User;
+                var userId = CookieAuthHelper.GetUserId(currentUser);
+                var userRole = CookieAuthHelper.GetRole(currentUser);
+
+                if (userId == null)
+                {
+                    return Unauthorized(new
+                    {
+                        code = "UNAUTHORIZED",
+                        message = "Bạn cần đăng nhập để thực hiện hoàn thành đơn hàng"
+                    });
+                }
+
+                Orders? exitingOrder;
+                if (userRole == "Admin")
+                {
+                    exitingOrder = _context.Orders.FirstOrDefault(o =>
+                        o.Id == id && o.Status == OrderStatus.Delivery);
+                }
+                else
+                {
+                    exitingOrder = _context.Orders.FirstOrDefault(o =>
+                        o.Id == id && o.Status == OrderStatus.Delivery && o.ShipperId == userId);
+                }
+
                 if (exitingOrder == null)
                 {
                     return UnprocessableEntity(new
@@ -351,12 +518,13 @@ namespace Assignment.Controllers
                 }
 
                 exitingOrder.Status = OrderStatus.Completed;
+                EarnPoint.IncreaseAccumulatedPoint(_context, exitingOrder.TotalPrice * 2, (long)exitingOrder.UserId!);
                 _context.Orders.Update(exitingOrder);
                 _context.SaveChanges();
 
                 return Json(new
                 {
-                    code = "ORDER_COMPLETED_SUCCESS",
+                    code = "ORDER_COMPLETED_TRANSPORT_SUCCESS",
                     message = "Đơn hàng đã được hoàn thành"
                 });
             }
@@ -364,7 +532,45 @@ namespace Assignment.Controllers
             {
                 return StatusCode(500, new
                 {
-                    code = "ORDER_COMPLETED_FAILURE",
+                    code = "ORDER_COMPLETED_TRANSPORT_FAILURE",
+                    message = e.Message
+                });
+            }
+        }
+        [HttpPut]
+        [Route("api/orders/assignment")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult AssignmentTransportOrder([FromBody] DeliveryAssignment assignment)
+        {
+            try
+            {
+                
+                var exitingOrder = _context.Orders.FirstOrDefault(o => o.Id == assignment.OrderId && o.Status == OrderStatus.Confirmed);
+                if (exitingOrder == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Đơn hàng không tồn tại"
+                    });
+                }
+
+                exitingOrder.ShipperId = assignment.ShipperId;
+                exitingOrder.Status = OrderStatus.Delivery;
+                _context.Orders.Update(exitingOrder);
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    code = "ORDER_ASSIGNMENT_TRANSPORT_SUCCESS",
+                    message = "Phân công giao hàng thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "ORDER_ASSIGNMENT_TRANSPORT_FAILURE",
                     message = e.Message
                 });
             }
@@ -383,12 +589,17 @@ namespace Assignment.Controllers
                 Orders? exitingOrder;
                 if (!string.IsNullOrWhiteSpace(role) && role == "Admin")
                 {
-                    exitingOrder = _context.Orders.FirstOrDefault(o => o.Id == id && o.Status == OrderStatus.Ordered);
+                    exitingOrder = _context.Orders.FirstOrDefault(o =>
+                        o.Id == id && (o.Status == OrderStatus.Ordered || o.Status == OrderStatus.Paid ||
+                                       o.Status == OrderStatus.Confirmed || o.Status == OrderStatus.Delivery));
                 }
                 else
                 {
                     exitingOrder = _context.Orders
-                        .FirstOrDefault(o => o.Id == id && o.Status == OrderStatus.Ordered && o.UserId == userId);
+                        .FirstOrDefault(o => o.Id == id && (o.Status == OrderStatus.Ordered ||
+                                                            o.Status == OrderStatus.Paid ||
+                                                            o.Status == OrderStatus.Confirmed ||
+                                                            o.Status == OrderStatus.Delivery) && o.UserId == userId);
                 }
                     
                 if (exitingOrder == null)
@@ -399,6 +610,29 @@ namespace Assignment.Controllers
                         message = "Đơn hàng không tồn tại"
                     });
                 }
+
+                if (exitingOrder.Status == OrderStatus.Paid || exitingOrder.Status == OrderStatus.Confirmed || exitingOrder.Status == OrderStatus.Delivery)
+                {
+                    if (exitingOrder.Status == OrderStatus.Paid || exitingOrder.Status == OrderStatus.Confirmed)
+                    {
+                        _context.Refunds.Add(new Refund()
+                        {
+                            Amount = exitingOrder.TotalPrice + exitingOrder.FeeExcludingTax,
+                            OrderId = exitingOrder.Id,
+                            Reason = $"Hoàn tiền đơn hàng DH{exitingOrder.Id} do đơn hàng bị hủy"
+                        });
+                    }
+                    else
+                    {
+                        _context.Refunds.Add(new Refund()
+                        {
+                            Amount = exitingOrder.TotalPrice,
+                            OrderId = exitingOrder.Id,
+                            Reason = $"Hoàn tiền đơn hàng DH{exitingOrder.Id} do đơn hàng bị hủy"
+                        });
+                    }
+                }
+
                 exitingOrder.Status = OrderStatus.Cancelled;
                 _context.Orders.Update(exitingOrder);
                 var orderDetails = _context.OrderDetails.Where(od => od.OrderId == exitingOrder.Id).ToList();
@@ -495,7 +729,12 @@ namespace Assignment.Controllers
 
                 if (body.transferAmount < order.TotalBill)
                 {
-                    // thêm code hoàn tiền sau
+                    _context.Refunds.Add(new Refund()
+                    {
+                        Amount = body.transferAmount,
+                        OrderId = order.Id,
+                        Reason = $"Hoàn tiền cho hóa đơn DH{order.Id} do số tiền thanh toán không hợp lệ"
+                    });
 
                     return UnprocessableEntity(new
                     {

@@ -12,5 +12,12 @@ namespace Assignment.Controllers
         {
             return View();
         }
+        [HttpGet]
+        [Route("vouchers/my-voucher")]
+        [Authorize]
+        public IActionResult MyVoucher()
+        {
+            return View();
+        }
     }
 }

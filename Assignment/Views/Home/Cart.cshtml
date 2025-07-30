@@ -85,61 +85,6 @@
             </div>
         </div>
     </div>
-
-    @* <div class="modal fade" id="buyAllModal" tabindex="-1" aria-labelledby="buyAllModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="buyAllModalLabel">Mua ngay</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    @if (User.Identity != null && User.Identity.IsAuthenticated)
-                    {
-                        <div class="mb-3 row">
-                            <h1 class="h1">Thông tin người nhận</h1>
-                            <div class="mb-3">
-                                <label for="buyall_name" class="form-label">Tên người nhận</label>
-                                <input type="text" class="form-control" id="buyall_name" placeholder="ví dụ: Bùi Đăng Khoa" value="@User.Identity.Name">
-                            </div>
-                            <div class="mb-3">
-                                <label for="buyall_phone" class="form-label">Số điện thoại người nhận</label>
-                                <input type="text" class="form-control" id="buyall_phone" placeholder="ví dụ: 0999999999" value="@userPhone">
-                            </div>
-                            <div class="mb-3">
-                                <label for="buyall_email" class="form-label">Địa chỉ email người nhận (Tùy chọn)</label>
-                                <input type="email" class="form-control" id="buyall_email" placeholder="ví dụ: khoabdtb00417@fpt.edu.vn" value="@userEmail">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Địa chỉ nhận</label>
-                                <div class="map-container ">
-                                    <div id="map"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="voucher" class="form-label">Mã giảm giá (Tùy chọn)</label>
-                                <input type="text" class="form-control" id="voucher" placeholder="ví dụ: GIAM100">
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-warning" role="alert">
-                            Bạn cần đăng nhập để thực hiện thanh toán. Vui lòng <a href="/login">đăng nhập</a> hoặc <a href="/register">đăng ký tài khoản</a>.
-                        </div>
-                    }
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    @if (User.Identity != null && User.Identity.IsAuthenticated)
-                    {
-                        <button type="button" class="btn btn-success" onclick="buyAll()">Thanh toán</button>
-                    }
-                </div>
-            </div>
-        </div>
-    </div> *@
-    
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">

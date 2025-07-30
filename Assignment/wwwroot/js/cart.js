@@ -4,6 +4,7 @@ let connection = null;
 window.addEventListener("load", function () {
   initConnection();
 });
+
 window.addEventListener("beforeunload", function () {
   if (connection) {
     connection.stop();
@@ -67,9 +68,6 @@ document.addEventListener("DOMContentLoaded", function () {
   paymentModal.addEventListener("hidden.bs.modal", function () {
     leavePaymentRealtime();
   });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
   LoadData();
 });
 

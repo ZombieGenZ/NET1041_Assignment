@@ -1,0 +1,216 @@
+﻿@using Assignment.Enum
+@model SearchPurchaseHistoryModel
+@(
+    ViewData["Title"] = "Quản lý đơn hàng"
+)
+
+<div>
+    <div class="row mt-3">
+        <h1>Quản lý đơn hàng</h1>
+    </div>
+
+    <div class="row mt-3 mb-3">
+        <div class="col-md-6 offset-md-3">
+            <div class="input-group gap-3">
+                <div class="col">
+                    <label for="startTime" class="form-label">Thời gian bắt đầu</label>
+                    <input type="date" class="form-control" id="startTime" value="@Model.StartTime?.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col">
+                    <label for="endTime" class="form-label">Thời gian kết thúc</label>
+                    <input type="date" class="form-control" id="endTime" value="@Model.EndTime?.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col">
+                    <label for="status" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="status">
+                        @if (Model.Status != null && Model.Status == OrderStatus.Ordered)
+                        {
+                            <option value="-1">Tất cả</option>
+                            <option value="0" selected>Đã đặt hàng</option>
+                            <option value="1">Đã thanh toán</option>
+                            <option value="2">Đã xác nhận</option>
+                            <option value="3">Đang giao hàng</option>
+                            <option value="4">Đã hoàn thành</option>
+                            <option value="5">Đã hủy</option>
+                        }
+                        else if (Model.Status != null && Model.Status == OrderStatus.Paid)
+                        {
+                            <option value="-1">Tất cả</option>
+                            <option value="0">Đã đặt hàng</option>
+                            <option value="1" selected>Đã thanh toán</option>
+                            <option value="2">Đã xác nhận</option>
+                            <option value="3">Đang giao hàng</option>
+                            <option value="4">Đã hoàn thành</option>
+                            <option value="5">Đã hủy</option>
+                        }
+                        else if (Model.Status != null && Model.Status == OrderStatus.Confirmed)
+                        {
+                            <option value="-1">Tất cả</option>
+                            <option value="0">Đã đặt hàng</option>
+                            <option value="1">Đã thanh toán</option>
+                            <option value="2" selected>Đã xác nhận</option>
+                            <option value="3">Đang giao hàng</option>
+                            <option value="4">Đã hoàn thành</option>
+                            <option value="5">Đã hủy</option>
+                        }
+                        else if (Model.Status != null && Model.Status == OrderStatus.Delivery)
+                        {
+                            <option value="-1">Tất cả</option>
+                            <option value="0">Đã đặt hàng</option>
+                            <option value="1">Đã thanh toán</option>
+                            <option value="2">Đã xác nhận</option>
+                            <option value="3" selected>Đang giao hàng</option>
+                            <option value="4">Đã hoàn thành</option>
+                            <option value="5">Đã hủy</option>
+                        }
+                        else if (Model.Status != null && Model.Status == OrderStatus.Completed)
+                        {
+                            <option value="-1">Tất cả</option>
+                            <option value="0">Đã đặt hàng</option>
+                            <option value="1">Đã thanh toán</option>
+                            <option value="2">Đã xác nhận</option>
+                            <option value="3">Đang giao hàng</option>
+                            <option value="4" selected>Đã hoàn thành</option>
+                            <option value="5">Đã hủy</option>
+                        }
+                        else if (Model.Status != null && Model.Status == OrderStatus.Cancelled)
+                        {
+                            <option value="-1">Tất cả</option>
+                            <option value="0">Đã đặt hàng</option>
+                            <option value="1">Đã thanh toán</option>
+                            <option value="2">Đã xác nhận</option>
+                            <option value="3">Đang giao hàng</option>
+                            <option value="4">Đã hoàn thành</option>
+                            <option value="5" selected>Đã hủy</option>
+                        }
+                        else
+                        {
+                            <option value="-1">Tất cả</option>
+                            <option value="0">Đã đặt hàng</option>
+                            <option value="1">Đã thanh toán</option>
+                            <option value="2">Đã xác nhận</option>
+                            <option value="3">Đang giao hàng</option>
+                            <option value="4">Đã hoàn thành</option>
+                            <option value="5">Đã hủy</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center mt-3">
+                <button class="btn btn-primary" onclick="search()">
+                    <i class="fa-solid fa-filter"></i>
+                    Lọc
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="accordion" id="orderList">
+        @if (Model.Data.Count > 0)
+        {
+            @foreach (Orders order in Model.Data)
+            {
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#order-@order.Id" aria-expanded="true" aria-controls="order-@order.Id">
+                            @if (order.Status == OrderStatus.Ordered)
+                            {
+                                <span class="badge bg-primary">Đã đặt hàng</span>
+                            }
+                            else if (order.Status == OrderStatus.Paid)
+                            {
+                                <span class="badge bg-warning">Đã Thanh toán</span>
+                            }
+                            else if (order.Status == OrderStatus.Confirmed)
+                            {
+                                <span class="badge bg-success">Đã xác nhận</span>
+                            }
+                            else if (order.Status == OrderStatus.Delivery)
+                            {
+                                <span class="badge bg-primary">Đang giao hàng</span>
+                            }
+                            else if (order.Status == OrderStatus.Completed)
+                            {
+                                <span class="badge bg-success">Đã hoàn thành</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Đã hủy</span>
+                            }
+                            <span>&nbsp;Order: #@order.Id - Ngày đặt: @order.CreatedTime.ToString("dd/MM/yyyy")</span>
+                        </button>
+                    </h2>
+                    <div id="order-@order.Id" class="accordion-collapse collapse" data-bs-parent="#orderList">
+                        <div class="accordion-body">
+                            <ul class="list-group list-group-numbered">
+                                @foreach (OrderDetail detail in order.OrderDetails)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold"><a href="/products/@detail.Product.Path" class="text-black text-decoration-none">@detail.Product.Name</a></div>
+                                            @detail.PricePreItems.ToString("C0") <i class="fa-solid fa-xmark"></i> @detail.TotalQuantityPreItems.ToString("N0")
+                                        </div>
+                                        <span class="badge bg-success rounded-pill">@detail.TotalPricePreItems.ToString("C0")</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-end mx-3 mb-1">
+                            <span class="fw-bold">Tổng tiền: @order.TotalPrice.ToString("C0")</span>
+                        </div>
+                        <div class="d-flex justify-content-end mx-3 mb-1">
+                            <span class="fw-bold">Giảm giá: <span class="text-danger">-@order.Discount.ToString("C0")</span></span>
+                        </div>
+                        <div class="d-flex justify-content-end mx-3 mb-1">
+                            <span class="fw-bold">Phí vận chuyển: @order.Fee.ToString("C0")</span>
+                        </div>
+                        <div class="d-flex justify-content-end mx-3 mb-1">
+                            <span class="fw-bold">Thuế VAT: @order.Vat.ToString("C0")</span>
+                        </div>
+                        <div class="d-flex justify-content-end mx-3 mb-1">
+                            <span class="fw-bold">Tổng hóa đơn: @order.TotalBill.ToString("C0")</span>
+                        </div>
+
+                        <div class="d-flex justify-content-end mb-3 mx-3 gap-2">
+                            @if (order.Status == OrderStatus.Ordered || order.Status == OrderStatus.Paid || order.Status == OrderStatus.Confirmed || order.Status == OrderStatus.Delivery)
+                            {
+                                <button class="float-end btn btn-danger" onclick="startSelected(@order.Id)" data-bs-toggle="modal" data-bs-target="#deleteModal">Hủy đơn hàng</button>
+                            }
+                            @if (order.Status == OrderStatus.Paid)
+                            {
+                                <button class="float-end btn btn-success" onclick="accept(@order.Id)">Xác nhận đơn hàng</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-center">Không có kết quả nào phù hợp</p>
+        }
+    </div>
+</div>
+
+<div>
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteModalLabel">Hủy đơn hàng</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn hủy đơn hàng này?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-danger" onclick="cancel()">Hủy đơn hàng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/order.js"></script>

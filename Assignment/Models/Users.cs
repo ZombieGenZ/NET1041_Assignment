@@ -28,10 +28,10 @@ namespace Assignment.Models
         public string Role { get; set; } = "Customer";
         [Required]
         [DefaultValue(0)]
-        public long TotalAccumulatedPoints { get; set; } = 0;
+        public double TotalAccumulatedPoints { get; set; } = 0;
         [Required]
         [DefaultValue(0)]
-        public long AccumulatedPoints { get; set; } = 0;
+        public double AccumulatedPoints { get; set; } = 0;
         [Required]
         [DefaultValue(UserRankEnum.None)]
         public UserRankEnum Rank { get; set; } = UserRankEnum.None;

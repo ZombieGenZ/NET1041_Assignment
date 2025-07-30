@@ -1,0 +1,363 @@
+﻿<div class="container">
+    <h1 class="text-center">Voucher của tôi</h1>
+
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <input type="text" class="form-control" id="searchVoucher" placeholder="Tìm kiếm voucher theo tên hoặc mã...">
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="btn-group mb-3" role="group">
+                <button type="button" class="btn btn-outline-primary active" onclick="filterVouchers('all')">Tất cả</button>
+                <button type="button" class="btn btn-outline-success" onclick="filterVouchers('active')">Có thể sử dụng</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="filterVouchers('expired')">Hết hạn</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3" id="voucherContainer">
+        <!-- Voucher 1 - Có thể sử dụng -->
+        <div class="col-md-6 col-lg-4 mb-3 voucher-item" data-status="active" data-name="giảm giá 20%" data-code="giam20">
+            <div class="card border-success">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title mb-0">Giảm giá 20%</h5>
+                        <span class="badge bg-primary">Công khai</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-success">
+                            <span>20%</span>
+                        </h2>
+                        <small class="text-muted">Tối đa: 100,000 VNĐ</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Mã voucher:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="GIAM20" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyVoucherCode('GIAM20')">Copy</button>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted">Áp dụng cho tất cả sản phẩm trong cửa hàng</p>
+
+                    <div class="alert alert-info py-2">
+                        <small>Đơn hàng tối thiểu: <strong>500,000 VNĐ</strong></small>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">Đã sử dụng: 5/100</small>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar" style="width: 5%"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Bắt đầu:</small><br>
+                            <small>01/01/2024</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Kết thúc:</small><br>
+                            <small>31/12/2024</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <span class="badge bg-success">Có thể sử dụng</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="button" class="btn btn-success w-100" onclick="useVoucher('GIAM20')">Sử dụng ngay</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voucher 2 - Giảm tiền mặt -->
+        <div class="col-md-6 col-lg-4 mb-3 voucher-item" data-status="active" data-name="freeship" data-code="freeship50">
+            <div class="card border-success">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title mb-0">FreeShip</h5>
+                        <span class="badge bg-warning">Riêng tư</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-success">
+                            <span>50,000 VNĐ</span>
+                        </h2>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Mã voucher:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="FREESHIP50" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyVoucherCode('FREESHIP50')">Copy</button>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted">Miễn phí vận chuyển toàn quốc</p>
+
+                    <div class="alert alert-info py-2">
+                        <small>Đơn hàng tối thiểu: <strong>200,000 VNĐ</strong></small>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">Đã sử dụng: 15/50</small>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar" style="width: 30%"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Bắt đầu:</small><br>
+                            <small>15/07/2024</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Kết thúc:</small><br>
+                            <small>15/08/2024</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <span class="badge bg-success">Có thể sử dụng</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="button" class="btn btn-success w-100" onclick="useVoucher('FREESHIP50')">Sử dụng ngay</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voucher 3 - Hết hạn -->
+        <div class="col-md-6 col-lg-4 mb-3 voucher-item" data-status="expired" data-name="sale cuối năm" data-code="sale2023">
+            <div class="card border-secondary bg-light">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title mb-0">Sale cuối năm</h5>
+                        <span class="badge bg-primary">Công khai</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-success">
+                            <span>50%</span>
+                        </h2>
+                        <small class="text-muted">Tối đa: 500,000 VNĐ</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Mã voucher:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="SALE2023" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyVoucherCode('SALE2023')">Copy</button>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted">Khuyến mãi lớn cuối năm 2023</p>
+
+                    <div class="alert alert-info py-2">
+                        <small>Đơn hàng tối thiểu: <strong>1,000,000 VNĐ</strong></small>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">Đã sử dụng: 100/100</small>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-danger" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Bắt đầu:</small><br>
+                            <small>01/12/2023</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Kết thúc:</small><br>
+                            <small>31/12/2023</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <span class="badge bg-danger">Đã hết hạn</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="button" class="btn btn-secondary w-100" disabled>Không thể sử dụng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voucher 4 - Vĩnh viễn -->
+        <div class="col-md-6 col-lg-4 mb-3 voucher-item" data-status="active" data-name="vip member" data-code="vipmember">
+            <div class="card border-success">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title mb-0">VIP Member</h5>
+                        <span class="badge bg-warning">Riêng tư</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-success">
+                            <span>10%</span>
+                        </h2>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Mã voucher:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="VIPMEMBER" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyVoucherCode('VIPMEMBER')">Copy</button>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted">Ưu đãi dành riêng cho thành viên VIP</p>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Bắt đầu:</small><br>
+                            <small>01/01/2024</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Vĩnh viễn</small><br>
+                            <small class="text-success">Không giới hạn</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <span class="badge bg-success">Có thể sử dụng</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="button" class="btn btn-success w-100" onclick="useVoucher('VIPMEMBER')">Sử dụng ngay</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voucher 5 - Chưa bắt đầu -->
+        <div class="col-md-6 col-lg-4 mb-3 voucher-item" data-status="expired" data-name="tết 2025" data-code="tet2025">
+            <div class="card border-secondary bg-light">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title mb-0">Tết 2025</h5>
+                        <span class="badge bg-primary">Công khai</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-success">
+                            <span>30%</span>
+                        </h2>
+                        <small class="text-muted">Tối đa: 300,000 VNĐ</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Mã voucher:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="TET2025" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyVoucherCode('TET2025')">Copy</button>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted">Khuyến mãi đặc biệt dịp Tết Nguyên Đán</p>
+
+                    <div class="alert alert-info py-2">
+                        <small>Đơn hàng tối thiểu: <strong>800,000 VNĐ</strong></small>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">Đã sử dụng: 0/200</small>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Bắt đầu:</small><br>
+                            <small>25/01/2025</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Kết thúc:</small><br>
+                            <small>05/02/2025</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <span class="badge bg-secondary">Chưa bắt đầu</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="button" class="btn btn-secondary w-100" disabled>Không thể sử dụng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voucher 6 - Hết lượt -->
+        <div class="col-md-6 col-lg-4 mb-3 voucher-item" data-status="expired" data-name="flash sale" data-code="flash100">
+            <div class="card border-secondary bg-light">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title mb-0">Flash Sale</h5>
+                        <span class="badge bg-primary">Công khai</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-success">
+                            <span>100,000 VNĐ</span>
+                        </h2>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Mã voucher:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="FLASH100" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyVoucherCode('FLASH100')">Copy</button>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted">Flash sale giới hạn 24h</p>
+
+                    <div class="alert alert-info py-2">
+                        <small>Đơn hàng tối thiểu: <strong>300,000 VNĐ</strong></small>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">Đã sử dụng: 20/20</small>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-warning" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Bắt đầu:</small><br>
+                            <small>29/07/2024</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Kết thúc:</small><br>
+                            <small>31/08/2024</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <span class="badge bg-warning">Hết lượt sử dụng</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="button" class="btn btn-secondary w-100" disabled>Không thể sử dụng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

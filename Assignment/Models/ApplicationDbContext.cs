@@ -15,5 +15,6 @@ namespace Assignment.Models
         public DbSet<Orders> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Evaluates> Evaluates { get; set; }
+        public DbSet<Refund> Refunds { get; set; }
     }
 }

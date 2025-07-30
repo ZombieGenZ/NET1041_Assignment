@@ -34,6 +34,9 @@ namespace Assignment.Models
         public double TotalPrice { get; set; }
         [Required]
         [Range(0, double.MaxValue)]
+        public double Discount { get; set; }
+        [Required]
+        [Range(0, double.MaxValue)]
         public double Fee { get; set; }
         [Required]
         [Range(0, double.MaxValue)]

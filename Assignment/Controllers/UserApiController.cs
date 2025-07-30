@@ -36,6 +36,28 @@ namespace Assignment.Controllers
                 })
                 .ToList());
         }
+        [HttpGet]
+        [Route("api/users/shipper")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult GetShipper()
+        {
+            return Json(_context.Users
+                .Where(u => u.Role == "Shipper")
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Name,
+                    u.Email,
+                    u.Phone,
+                    u.DateOfBirth,
+                    u.Rank,
+                    u.Role,
+                    u.UserType,
+                    u.CreatedAt,
+                    u.MainProvider
+                })
+                .ToList());
+        }
 
         [HttpPost]
         [Route("api/users/register")]
