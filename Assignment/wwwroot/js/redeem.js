@@ -1,40 +1,5 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
   LoadData();
-
-  const autoGeneratorCodeCheckbox =
-    document.getElementById("autoGeneratorCode");
-  const divCode = document.getElementById("div_code");
-  if (autoGeneratorCodeCheckbox && divCode) {
-    autoGeneratorCodeCheckbox.addEventListener("change", function () {
-      if (this.checked) {
-        divCode.style.display = "none";
-      } else {
-        divCode.style.display = "block";
-      }
-    });
-    if (autoGeneratorCodeCheckbox.checked) {
-      divCode.style.display = "none";
-    } else {
-      divCode.style.display = "block";
-    }
-  }
-
-  const typeSelect = document.getElementById("type");
-  const divUser = document.getElementById("div_user");
-  if (typeSelect && divUser) {
-    typeSelect.addEventListener("change", function () {
-      if (this.value === "0") {
-        divUser.style.display = "none";
-      } else if (this.value === "1") {
-        divUser.style.display = "block";
-      }
-    });
-    if (typeSelect.value === "0") {
-      divUser.style.display = "none";
-    } else if (typeSelect.value === "1") {
-      divUser.style.display = "block";
-    }
-  }
 
   const discountTypeSelect = document.getElementById("discountType");
   const discount = document.getElementById("discount");
@@ -95,44 +60,17 @@ document.addEventListener("DOMContentLoaded", () => {
       maximumPercentageReduction.style.display = "block";
     }
   }
-
-  const listDom = document.getElementById("userList");
-  listDom.innerHTML = "";
-  fetch("/api/users")
-    .then((response) => {
-      if (response.status === 422 || response.status === 401) {
-        return response.json();
-      }
-
-      if (!response.ok) {
-        return showErrorToast(
-          "Lỗi khi tải dử liệu. Vui lòng thử lại sau.",
-          4000
-        );
-      }
-
-      return response.json();
-    })
-    .then((data) => {
-      if (data.length > 0) {
-        let list = "";
-        for (var item of data) {
-          list += `<option value="${item.id}">${item.name} (${item.email})</option>`;
-        }
-        listDom.innerHTML = list;
-      }
-    });
 });
 
 function LoadData(search) {
   if (!search || search.trim() === "") {
     document.getElementById("search").value = "";
   }
-  const listDom = document.getElementById("VoucherData");
+  const listDom = document.getElementById("RedeemData");
   listDom.innerHTML = "";
   listDom.innerHTML =
-    '<tr><td class="text-center" colspan="11">Không có dử liệu nào phù hợp</td></tr>';
-  fetch(`/api/vouchers${!search ? "" : `/?${search}`}`)
+    '<tr><td class="text-center" colspan="9">Không có dử liệu nào phù hợp</td></tr>';
+  fetch(`/api/redeems${!search ? "" : `/?${search}`}`)
     .then((response) => {
       if (response.status === 422 || response.status === 401) {
         return response.json();
@@ -154,42 +92,53 @@ function LoadData(search) {
           list += `
                         <tr>
                             <td>${item.id}</td>
-                            <td>${item.code}</td>
                             <td>${item.name}</td>
+                           
                             <td>${
-                              item.type === 0 ? "Công khai" : "Riêng tư"
-                            }</td>
-                            <td>${item.type === 0 ? "" : item.user?.name}</td>
-                            <td>${
-                              item.type === 0
+                              item.discountType === 0
                                 ? item.discount.toLocaleString("vi-VN", {
                                     style: "currency",
                                     currency: "VND",
                                   })
                                 : `${item.discount}%`
                             }</td>
-                            <td>${item.used}</td>
-                            <td>${item.quantity}</td>
-                            <td>${formatDDMMYYYY(new Date(item.startTime))}</td>
                             <td>${
-                              item.endTime == null
-                                ? ""
-                                : formatDDMMYYYY(new Date(item.endTime))
+                              item.IsLifeTime
+                                ? "Vĩnh viễn"
+                                : convertDurationToStringDescription(
+                                    item.endTime
+                                  )
                             }</td>
+                            <td>${item.minimumRequirements}</td>
+                            <td>${
+                              item.unlimitedPercentageDiscount
+                                ? "Không giới hạn"
+                                : !item.maximumPercentageReduction
+                                ? ""
+                                : item.maximumPercentageReduction.toLocaleString(
+                                    "vi-VN",
+                                    {
+                                      style: "currency",
+                                      currency: "VND",
+                                    }
+                                  )
+                            }</td>
+                            <td>${item.price.toLocaleString("vi-VN")} điểm</td>
+                            <td>${convertNumberToVietnameseWord(
+                              item.rankRequirement
+                            )}</td>
                             <td class="text-end button-cell">
                                 <button class="btn btn-warning" onclick='startUpdate(${
                                   item.id
-                                }, "${item.code}", "${item.name}", "${
-            item.description
-          }", ${item.type}, ${item.userId}, ${item.discountType}, ${
-            item.discount
-          }, ${item.quantity}, "${item.startTime}", ${item.isLifeTime}, ${
+                                }, "${item.name}", "${item.description}", ${
+            item.discountType
+          }, ${item.discount}, ${item.isLifeTime}, ${
             !item.endTime ? null : `"${item.endTime}"`
           }, ${item.minimumRequirements}, ${
             item.unlimitedPercentageDiscount
-          }, ${
-            item.maximumPercentageReduction
-          })' data-bs-toggle="modal" data-bs-target="#createAndUpdateModal">Sửa</button>
+          }, ${item.maximumPercentageReduction}, ${item.price}, ${
+            item.rankRequirement
+              }, ${item.isPublish})' data-bs-toggle="modal" data-bs-target="#createAndUpdateModal">Sửa</button>
                                 <button class="btn btn-danger" onClick='startDelete(${
                                   item.id
                                 })' data-bs-toggle="modal" data-bs-target="#deleteModal">Xóa</button>
@@ -200,27 +149,9 @@ function LoadData(search) {
         listDom.innerHTML = list;
       } else {
         listDom.innerHTML =
-          '<tr><td class="text-center" colspan="11">Không có dử liệu nào phù hợp</td></tr>';
+          '<tr><td class="text-center" colspan="9">Không có dử liệu nào phù hợp</td></tr>';
       }
     });
-}
-
-function Search() {
-  const searchValue = document.getElementById("search").value.trim();
-
-  const customEncodeUriComponent = (value) => {
-    return encodeURIComponent(value).replace(/%20/g, "+");
-  };
-
-  const params = [];
-  if (searchValue) params.push(`text=${customEncodeUriComponent(searchValue)}`);
-
-  const queryString = params.length > 0 ? params.join("&") : "";
-  if (queryString) {
-    LoadData(queryString);
-  } else {
-    LoadData();
-  }
 }
 
 function startCreate() {
@@ -228,38 +159,15 @@ function startCreate() {
   clearClass();
   clearInput();
   document.getElementById("createAndUpdateModalLabel").textContent =
-    "Tạo mã giảm giá mới";
+    "Tạo mã vật phẩm đổi thưởng mới";
   document.getElementById("createAndUpdateButton").textContent =
-    "Tạo mã giảm giá";
+    "Tạo mã vật phẩm đổi thưởng";
   document.getElementById("createAndUpdateButton").classList.add("btn-success");
   document
     .getElementById("createAndUpdateButton")
     .addEventListener("click", create);
 
-  document.getElementById("div_autoGeneratorCode").style.display = "block";
-
   {
-    const autoGeneratorCodeCheckbox =
-      document.getElementById("autoGeneratorCode");
-    const divCode = document.getElementById("div_code");
-    if (autoGeneratorCodeCheckbox && divCode) {
-      if (autoGeneratorCodeCheckbox.checked) {
-        divCode.style.display = "none";
-      } else {
-        divCode.style.display = "block";
-      }
-    }
-
-    const typeSelect = document.getElementById("type");
-    const divUser = document.getElementById("div_user");
-    if (typeSelect && divUser) {
-      if (typeSelect.value === "0") {
-        divUser.style.display = "none";
-      } else if (typeSelect.value === "1") {
-        divUser.style.display = "block";
-      }
-    }
-
     const discountTypeSelect = document.getElementById("discountType");
     const discount = document.getElementById("discount");
     const max = document.getElementById("div_max");
@@ -300,19 +208,13 @@ function startCreate() {
 }
 
 function create() {
-  const autoGeneratorCode =
-    document.getElementById("autoGeneratorCode").checked;
-  const code = document.getElementById("code").value;
   const name = document.getElementById("name").value;
   const description = document.getElementById("description").value;
-  const type = document.getElementById("type").value;
-  const user = document.getElementById("userList").value;
   const discountType = document.getElementById("discountType").value;
   const discount = document.getElementById("discount").value;
-  const quantity = document.getElementById("quantity").value;
-  const startTime = document.getElementById("startTime").value;
   const isLifeTime = document.getElementById("isLifeTime").checked;
-  const endTime = document.getElementById("endTime").value;
+  const endTimeValue = document.getElementById("endTimeValue").value;
+  const endTimeType = document.getElementById("endTimeType").value;
   const minimumRequirements = document.getElementById(
     "minimumRequirements"
   ).value;
@@ -322,34 +224,22 @@ function create() {
   const maximumPercentageReduction = document.getElementById(
     "maximumPercentageReduction"
   ).value;
+  const price = document.getElementById("price").value;
+  const rankRequirement = document.getElementById("rankRequirement").value;
+    const isPublish = document.getElementById("publish").checked;
 
-  if (!name || !description || !startTime) {
+  const endTime = endTimeValue + endTimeType;
+
+  if (!name || !description) {
     const errMsg = [];
     if (!name) {
-      errMsg.push("tên mã giảm giá");
+      errMsg.push("tên sản phẩm");
     }
     if (!description) {
-      errMsg.push("mô tả mã giảm giá");
-    }
-    if (!startTime) {
-      errMsg.push("thời gian bắt đầu");
+      errMsg.push("mô tả sản phẩm");
     }
     showWarningToast(`Vui lòng nhập ${errMsg.join(", ")}`, 4000);
     return;
-  }
-
-  if (!autoGeneratorCode) {
-    if (!code) {
-      showWarningToast(`Vui lòng nhập mã giảm giá`, 4000);
-      return;
-    }
-  }
-
-  if (type == "1") {
-    if (!user || isNaN(user)) {
-      showWarningToast(`Vui lòng nhập người sở hửu`, 4000);
-      return;
-    }
   }
 
   if (discountType == "1") {
@@ -364,28 +254,9 @@ function create() {
     }
   }
 
-  if (
-    isNaN(Number(quantity)) ||
-    (!isNaN(Number(quantity)) && Number(quantity) <= 0)
-  ) {
-    showWarningToast(
-      `Số lượng mã giảm giá không được bé hơn hoặc bằng 0"`,
-      4000
-    );
-    return;
-  }
-
   if (!isLifeTime) {
-    if (!endTime) {
-      showWarningToast(`Vui lòng nhập thời gian kết thúc`, 4000);
-      return;
-    }
-
-    if (new Date(startTime) > new Date(endTime)) {
-      showWarningToast(
-        `Thời gian bắt đầu không được lớn hơn thời gian kết thúc`,
-        4000
-      );
+    if (!isValidDurationString(endTime)) {
+      showWarningToast(`Thời hạn không hợp lệ`, 4000);
       return;
     }
   }
@@ -411,27 +282,29 @@ function create() {
     }
   }
 
-  fetch("/api/vouchers", {
+  if (isNaN(Number(price)) || (!isNaN(Number(price)) && Number(price) < 0)) {
+    showWarningToast(`Giá quy đổi phải lớn hơn hoặc bằng 0`, 4000);
+    return;
+  }
+
+  fetch("/api/redeems", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      AutoGeneratorCode: autoGeneratorCode,
-      Code: code,
       Name: name,
       Description: description,
-      Type: Number(type),
-      UserId: Number(user),
       Discount: Number(discount),
       DiscountType: Number(discountType),
-      Quantity: Number(quantity),
-      StartTime: new Date(startTime),
       IsLifeTime: isLifeTime,
-      EndTime: isLifeTime ? null : new Date(endTime),
+      EndTime: isLifeTime ? null : endTime,
       MinimumRequirements: Number(minimumRequirements),
       UnlimitedPercentageDiscount: unlimitedPercentageDiscount,
       MaximumPercentageReduction: Number(maximumPercentageReduction),
+      Price: Number(price),
+        RankRequirement: Number(rankRequirement),
+        IsPublish: isPublish
     }),
   })
     .then((response) => {
@@ -442,7 +315,7 @@ function create() {
 
         if (!response.ok) {
           return showErrorToast(
-            "Lỗi khi tạo mã giảm giá. Vui lòng thử lại sau.",
+            "Lỗi khi tạo vật phẩm đổi thưởng. Vui lòng thử lại sau.",
             4000
           );
         }
@@ -457,7 +330,7 @@ function create() {
         return;
       }
 
-      if (data.code == "CREATE_VOUCHER_SUCCESS") {
+      if (data.code == "CREATE_REDEEM_SUCCESS") {
         LoadData();
         clearInput();
         const createAndUpdateModal = document.getElementById(
@@ -479,80 +352,49 @@ function create() {
 
 function startUpdate(
   id,
-  code,
   name,
   description,
-  type,
-  user,
   discountType,
   discount,
-  quantity,
-  startTime,
   isLifeTime,
   endTime,
   minimumRequirements,
   unlimitedPercentageDiscount,
-  maximumPercentageReduction
+  maximumPercentageReduction,
+  price,
+    rankRequirement,
+    isPublish
 ) {
   clearEvent();
   clearClass();
   clearInput();
   document.getElementById("createAndUpdateModalLabel").textContent =
-    "Cập nhật mã giảm giá";
+    "Cập nhật vật phẩm đổi thưởng";
   document.getElementById("createAndUpdateButton").textContent =
-    "Cập nhật mã giảm giá";
+    "Cập nhật vật phẩm đổi thưởng";
   document.getElementById("createAndUpdateButton").classList.add("btn-warning");
   document
     .getElementById("createAndUpdateButton")
     .addEventListener("click", update);
 
-  document.getElementById("div_autoGeneratorCode").style.display = "none";
-
   selectedId = id;
-  document.getElementById("autoGeneratorCode").checked = false;
-  document.getElementById("code").value = code;
   document.getElementById("name").value = name;
   document.getElementById("description").value = description;
-  document.getElementById("type").value = type;
-  document.getElementById("userList").value = !user ? "" : user;
   document.getElementById("discountType").value = discountType;
   document.getElementById("discount").value = discount;
-  document.getElementById("quantity").value = quantity;
-  document.getElementById("startTime").value = formatDateToYYYYMMDD(
-    new Date(startTime)
-  );
   document.getElementById("isLifeTime").checked = isLifeTime;
-  document.getElementById("endTime").value = !endTime
-    ? ""
-    : formatDateToYYYYMMDD(new Date(endTime));
+  document.getElementById("endTimeValue").value = getDurationValue(endTime);
+  document.getElementById("endTimeType").value = getDurationType(endTime);
   document.getElementById("minimumRequirements").value = minimumRequirements;
   document.getElementById("unlimitedPercentageDiscount").checked =
     unlimitedPercentageDiscount;
   document.getElementById("maximumPercentageReduction").value =
     maximumPercentageReduction;
+  document.getElementById("price").value = price;
+  document.getElementById("rankRequirement").value = rankRequirement;
+    document.getElementById("publish").checked = isPublish;
 
   {
-    const autoGeneratorCodeCheckbox =
-      document.getElementById("autoGeneratorCode");
-    const divCode = document.getElementById("div_code");
-    if (autoGeneratorCodeCheckbox && divCode) {
-      if (autoGeneratorCodeCheckbox.checked) {
-        divCode.style.display = "none";
-      } else {
-        divCode.style.display = "block";
-      }
-    }
-
-    const typeSelect = document.getElementById("type");
-    const divUser = document.getElementById("div_user");
-    if (typeSelect && divUser) {
-      if (typeSelect.value === "0") {
-        divUser.style.display = "none";
-      } else if (typeSelect.value === "1") {
-        divUser.style.display = "block";
-      }
-    }
-
     const discountTypeSelect = document.getElementById("discountType");
     const discount = document.getElementById("discount");
     const max = document.getElementById("div_max");
@@ -593,19 +435,13 @@ function startUpdate(
 }
 
 function update() {
-  const autoGeneratorCode =
-    document.getElementById("autoGeneratorCode").checked;
-  const code = document.getElementById("code").value;
   const name = document.getElementById("name").value;
   const description = document.getElementById("description").value;
-  const type = document.getElementById("type").value;
-  const user = document.getElementById("userList").value;
   const discountType = document.getElementById("discountType").value;
   const discount = document.getElementById("discount").value;
-  const quantity = document.getElementById("quantity").value;
-  const startTime = document.getElementById("startTime").value;
   const isLifeTime = document.getElementById("isLifeTime").checked;
-  const endTime = document.getElementById("endTime").value;
+  const endTimeValue = document.getElementById("endTimeValue").value;
+  const endTimeType = document.getElementById("endTimeType").value;
   const minimumRequirements = document.getElementById(
     "minimumRequirements"
   ).value;
@@ -615,30 +451,22 @@ function update() {
   const maximumPercentageReduction = document.getElementById(
     "maximumPercentageReduction"
   ).value;
+  const price = document.getElementById("price").value;
+    const rankRequirement = document.getElementById("rankRequirement").value;
+    const isPublish = document.getElementById("publish").checked;
 
-  if (!code || !name || !description || !startTime) {
+  const endTime = endTimeValue + endTimeType;
+
+  if (!name || !description) {
     const errMsg = [];
-    if (!code) {
-      errMsg.push("mã giảm giá");
-    }
     if (!name) {
-      errMsg.push("tên mã giảm giá");
+      errMsg.push("tên sản phẩm");
     }
     if (!description) {
-      errMsg.push("mô tả mã giảm giá");
-    }
-    if (!startTime) {
-      errMsg.push("thời gian bắt đầu");
+      errMsg.push("mô tả sản phẩm");
     }
     showWarningToast(`Vui lòng nhập ${errMsg.join(", ")}`, 4000);
     return;
-  }
-
-  if (type == "1") {
-    if (!user || isNaN(user)) {
-      showWarningToast(`Vui lòng nhập người sở hửu`, 4000);
-      return;
-    }
   }
 
   if (discountType == "1") {
@@ -653,25 +481,9 @@ function update() {
     }
   }
 
-  if (
-    isNaN(Number(quantity)) ||
-    (!isNaN(Number(quantity)) && Number(quantity) < 0)
-  ) {
-    showWarningToast(`Số lượng mã giảm giá không được bé hơn 0"`, 4000);
-    return;
-  }
-
   if (!isLifeTime) {
-    if (!endTime) {
-      showWarningToast(`Vui lòng nhập thời gian kết thúc`, 4000);
-      return;
-    }
-
-    if (new Date(startTime) > new Date(endTime)) {
-      showWarningToast(
-        `Thời gian bắt đầu không được lớn hơn thời gian kết thúc`,
-        4000
-      );
+    if (!isValidDurationString(endTime)) {
+      showWarningToast(`Thời hạn không hợp lệ`, 4000);
       return;
     }
   }
@@ -697,27 +509,29 @@ function update() {
     }
   }
 
-  fetch(`/api/vouchers/${selectedId}`, {
+  if (isNaN(Number(price)) || (!isNaN(Number(price)) && Number(price) < 0)) {
+    showWarningToast(`Giá quy đổi phải lớn hơn hoặc bằng 0`, 4000);
+    return;
+  }
+
+  fetch(`/api/redeems/${selectedId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      AutoGeneratorCode: autoGeneratorCode,
-      Code: code,
       Name: name,
       Description: description,
-      Type: Number(type),
-      UserId: Number(user),
       Discount: Number(discount),
       DiscountType: Number(discountType),
-      Quantity: Number(quantity),
-      StartTime: new Date(startTime),
       IsLifeTime: isLifeTime,
-      EndTime: endTisLifeTimeime ? null : new Date(endTime),
+      EndTime: isLifeTime ? null : endTime,
       MinimumRequirements: Number(minimumRequirements),
       UnlimitedPercentageDiscount: unlimitedPercentageDiscount,
       MaximumPercentageReduction: Number(maximumPercentageReduction),
+      Price: Number(price),
+        RankRequirement: Number(rankRequirement),
+        IsPublish: isPublish
     }),
   })
     .then((response) => {
@@ -728,7 +542,7 @@ function update() {
 
         if (!response.ok) {
           return showErrorToast(
-            "Lỗi khi cập nhật mã giảm giá. Vui lòng thử lại sau.",
+            "Lỗi khi tạo vật phẩm đổi thưởng. Vui lòng thử lại sau.",
             4000
           );
         }
@@ -743,7 +557,7 @@ function update() {
         return;
       }
 
-      if (data.code == "UPDATE_VOUCHER_SUCCESS") {
+      if (data.code == "UPDATE_REDEEM_SUCCESS") {
         LoadData();
         clearInput();
         const createAndUpdateModal = document.getElementById(
@@ -768,7 +582,7 @@ function startDelete(id) {
 }
 
 function del() {
-  fetch(`/api/vouchers/${selectedId}`, {
+  fetch(`/api/redeems/${selectedId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -797,7 +611,7 @@ function del() {
         return;
       }
 
-      if (data.code == "DELETE_VOUCHER_SUCCESS") {
+      if (data.code == "DELETE_REDEEM_SUCCESS") {
         LoadData();
         const deleteModal = document.getElementById("deleteModal");
         const modal = bootstrap.Modal.getInstance(deleteModal);
@@ -833,36 +647,98 @@ function clearClass() {
 }
 
 function clearInput() {
-  document.getElementById("autoGeneratorCode").checked = true;
-  document.getElementById("code").value = "";
   document.getElementById("name").value = "";
   document.getElementById("description").value = "";
-  document.getElementById("type").value = "0";
-  document.getElementById("userList").value = "0";
   document.getElementById("discountType").value = "0";
   document.getElementById("discount").value = 0;
-  document.getElementById("quantity").value = 0;
-  document.getElementById("startTime").value = "";
   document.getElementById("isLifeTime").checked = false;
-  document.getElementById("endTime").value = "";
+  document.getElementById("endTimeValue").value = 1;
+  document.getElementById("endTimeType").value = "mo";
   document.getElementById("minimumRequirements").value = 0;
   document.getElementById("unlimitedPercentageDiscount").checked = false;
   document.getElementById("maximumPercentageReduction").value = 0;
+  document.getElementById("price").value = 0;
+  document.getElementById("rankRequirement").value = "0";
+    document.getElementById("publish").checked = true;
 }
 
-function formatDDMMYYYY(date) {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+function getDurationValue(input) {
+  if (!isValidDurationString(input)) {
+    return 0;
+  }
+  const match = input.match(durationRegex);
+  return parseInt(match[1]);
 }
 
-function formatDateToYYYYMMDD(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+function getDurationType(input) {
+  if (!isValidDurationString(input)) {
+    return "Chuổi không hợp lệ";
+  }
+  const match = input.match(durationRegex);
+  return match[2].toLowerCase(); // Trả về loại đã được chuyển về chữ thường
+}
 
-  return `${year}-${month}-${day}`;
+function convertNumberToVietnameseWord(number) {
+  switch (number) {
+    case 1:
+      return "Đồng";
+    case 2:
+      return "Bạc";
+    case 3:
+      return "Vàng";
+    case 4:
+      return "Kim cương";
+    default:
+      return "Không cần";
+  }
+}
+
+const durationRegex = /^(\d+)([smhdw]|mo|y)$/i;
+
+function isValidDurationString(input) {
+  if (input === null || input === undefined || input.trim() === "") {
+    return false;
+  }
+  return durationRegex.test(input);
+}
+
+function convertDurationToStringDescription(input) {
+  if (!isValidDurationString(input)) {
+    return "Chuổi không hợp lệ";
+  }
+
+  const match = input.match(durationRegex);
+  const value = parseInt(match[1]);
+  const type = match[2].toLowerCase();
+
+  let unit;
+  switch (type) {
+    case "s":
+      unit = "giây";
+      break;
+    case "m":
+      unit = "phút";
+      break;
+    case "h":
+      unit = "giờ";
+      break;
+    case "d":
+      unit = "ngày";
+      break;
+    case "w":
+      unit = "tuần";
+      break;
+    case "mo":
+      unit = "tháng";
+      break;
+    case "y":
+      unit = "năm";
+      break;
+    default:
+      return "Chuổi không hợp lệ";
+  }
+
+  return `${value} ${unit}`;
 }
 
 /**

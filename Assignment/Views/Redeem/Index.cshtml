@@ -1,0 +1,153 @@
+﻿@{
+    ViewData["Title"] = "Quản lý vật phẩm đổi thưởng";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <h1 class="h1">
+            Quản lý vật phẩm đổi thưởng
+            <div class="float-end align-items-center">
+                <button class="btn btn-primary" onclick="startCreate()" data-bs-toggle="modal" data-bs-target="#createAndUpdateModal">Tạo vật phẩm đổi thưởng mới</button>
+            </div>
+        </h1>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-6 offset-md-3">
+            <div class="input-group">
+                <input type="text" class="form-control" id="search" placeholder="Tìm kiếm...">
+                <button class="btn btn-primary" type="button" onclick="Search()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Tên</th>
+                <th scope="col">Giảm giá</th>
+                <th scope="col">Thời hạn</th>
+                <th scope="col">Yêu cầu tối thiểu</th>
+                <th scope="col">Giảm giá tối đa</th>
+                <th scope="col">Giá quy đổi</th>
+                <th scope="col">Yêu cầu hạng</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody id="RedeemData"></tbody>
+        </table>
+    </div>
+</div>
+
+<div>
+    <div class="modal fade" id="createAndUpdateModal" tabindex="-1" aria-labelledby="createAndUpdateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="createAndUpdateModalLabel">Tạo và sửa vật phẩm đổi thưởng</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Tên mã giảm giá</label>
+                        <input type="text" class="form-control" id="name" placeholder="ví dụ: voucher giảm 100%">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Mô tả mã giảm giá</label>
+                        <input type="text" class="form-control" id="description" placeholder="ví dụ: voucher giảm 100% cho mọi người">
+                    </div>
+                    <div class="mb-3">
+                        <label for="discountType" class="form-label">Loại giảm giá</label>
+                        <select class="form-select mb-3" id="discountType">
+                            <option value="0">Theo tiền</option>
+                            <option value="1">Theo phần trăm</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="discount" class="form-label">Giảm giá</label>
+                        <input type="number" class="form-control" id="discount" placeholder="ví dụ: 100,000 hoặc 100%">
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="isLifeTime" checked>
+                        <label class="form-check-label" for="isLifeTime">Vĩnh viễn</label>
+                    </div>
+                    <div class="mb-3" id="div_endTime" style="display: block">
+                        <label for="endTimeValue" class="form-label">Thời gian kết thúc</label>
+                        <div class="d-flex align-items-center">
+                            <input type="number" class="form-control me-2" id="endTimeValue" style="max-width: 100%;">
+                            <select class="form-select" id="endTimeType" style="max-width: 120px;">
+                                <option value="s">Giây</option>
+                                <option value="m">Phút</option>
+                                <option value="h">Giờ</option>
+                                <option value="d">Ngày</option>
+                                <option value="w">Tuần</option>
+                                <option value="mo">Tháng</option>
+                                <option value="y">Năm</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="minimumRequirements" class="form-label">Yêu cầu tối thiểu</label>
+                        <input type="number" class="form-control" id="minimumRequirements" placeholder="ví dụ: 100,000">
+                    </div>
+                    <div id="div_max" style="display: none">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="unlimitedPercentageDiscount" checked>
+                            <label class="form-check-label" for="unlimitedPercentageDiscount">Không giới hạn số tiền giảm tối đa</label>
+                        </div>
+                        <div class="mb-3" id="div_maximumPercentageReduction">
+                            <label for="maximumPercentageReduction" class="form-label">Số tiền giảm tối đa</label>
+                            <input type="number" class="form-control" id="maximumPercentageReduction" placeholder="ví dụ: 100,000">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Giá quy đổi</label>
+                        <input type="number" class="form-control" id="price" placeholder="ví dụ: 100,000">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rankRequirement" class="form-label">Yêu cầu cấp bật</label>
+                        <select class="form-select" id="rankRequirement">
+                            <option value="0">Không cần</option>
+                            <option value="1">Đồng</option>
+                            <option value="2">Bạc</option>
+                            <option value="3">Vàng</option>
+                            <option value="4">Kim cương</option>
+                        </select>
+                    </div>
+                    <div class="form-check float-end">
+                        <input class="form-check-input" type="checkbox" value="" id="publish" checked>
+                        <label class="form-check-label" for="publish">
+                            Công khai phần thưởng
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="createAndUpdateButton">Tạo và sửa vật phẩm đổi thưởng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteModalLabel">Xóa mã giảm giá</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa mã giảm giá này?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-danger" onclick="del()">Xóa mã giảm giá</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/redeem.js"></script>

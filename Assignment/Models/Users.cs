@@ -54,5 +54,7 @@ namespace Assignment.Models
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public virtual List<Vouchers> Vouchers { get; set; }
+        public virtual List<ForgotPassword> ForgotPasswords { get; set; }
+        public virtual List<VerifyAccount> VerifyAccounts { get; set; }
     }
 }

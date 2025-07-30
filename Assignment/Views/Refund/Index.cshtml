@@ -1,0 +1,79 @@
+﻿@model List<Refund>
+@{
+    ViewData["Title"] = "Quản lý đơn yêu cầu hhoàn tiền";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <h1 class="h1">
+            Quản lý đơn yêu cầu hhoàn tiền
+        </h1>
+    </div>
+
+    <div class="row mt-3">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Đơn hàng</th>
+                <th scope="col">Lý do</th>
+                <th scope="col">Số tiền</th>
+                <th scope="col">Trạng thái</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (Refund refund in Model)
+            {
+                <tr>
+                    <th scope="row">@refund.Id</th>
+                    <td>DH@(refund.OrderId)</td>
+                    <td>@refund.Reason</td>
+                    <td>@refund.Amount.ToString("C0")</td>
+                    @if (refund.Status == RefundStatusEnum.Pending)
+                    {
+                        <td class="text-warning">Đang chờ</td>
+                    }
+                    else if (refund.Status == RefundStatusEnum.Complete)
+                    {
+                        <td class="text-success">Đã duyệt</td>
+                    }
+                    else
+                    {
+                        <td class="text-danger">Đã từ chối</td>
+                    }
+                    <td>
+                        @if (refund.Status == RefundStatusEnum.Pending)
+                        {
+                            <button type="button" class="btn btn-success" onclick="complete(@refund.Id)">Hoàn thành</button>
+                            <button type="button" class="btn btn-danger" onclick="startSelected(@refund.Id)" data-bs-toggle="modal" data-bs-target="#deleteModal">Từ chối</button>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div>
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteModalLabel">Hủy đơn hàng</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn từ chối hoàn tiền cho đơn hàng này?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-danger" onclick="cancel()">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/refund.js"></script>

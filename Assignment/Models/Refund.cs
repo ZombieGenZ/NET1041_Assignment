@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Assignment.Models
@@ -16,6 +17,9 @@ namespace Assignment.Models
         [Required]
         [StringLength(5000)]
         public string Reason { get; set; }
+        [Required]
+        [DefaultValue(RefundStatusEnum.Pending)]
+        public RefundStatusEnum Status { get; set; } = RefundStatusEnum.Pending;
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         [Required]

@@ -32,7 +32,7 @@ namespace Assignment.Controllers
                     {
                         var lowerCaseTerm = term.ToLower();
 
-                        query = query.Where(p => p.Name.ToLower().Contains(lowerCaseTerm) || p.Description.ToLower().Contains(lowerCaseTerm));
+                        query = query.Where(c => c.Name.ToLower().Contains(lowerCaseTerm) || c.Description.ToLower().Contains(lowerCaseTerm));
                     }
                 }
 

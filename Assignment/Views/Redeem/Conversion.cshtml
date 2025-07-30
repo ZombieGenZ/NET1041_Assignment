@@ -1,0 +1,62 @@
+﻿@model List<Redeems>
+
+<div class="container">
+<h1 class="text-center">Đổi thưởng</h1>
+<p class="text-center h4 my-3">Số điểm tích lũy của tôi: <span id="point"><b>0</b> điểm</span></p>
+
+<div class="row mt-3" id="voucherContainer">
+@foreach(Redeems redeem in Model)
+{
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card border-success">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 me-2" style="flex: 1 1 auto; min-width: 0; word-break: break-word;">@redeem.Name</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h2 class="text-success">
+                        <span>@(redeem.DiscountType == DiscountTypeEnum.Money ? redeem.Discount.ToString("C0") : $"{redeem.Discount}%")</span>
+                    </h2>
+                    @if (redeem.DiscountType == DiscountTypeEnum.Percent && !redeem.UnlimitedPercentageDiscount)
+                    {
+                        <small class="text-muted">Tối đa: @redeem.MaximumPercentageReduction?.ToString("C0")</small>
+                    } 
+                </div>
+
+                <p class="small text-muted">Áp dụng cho tất cả sản phẩm trong cửa hàng</p>
+
+                <div class="alert alert-info py-2">
+                    <small>Đơn hàng tối thiểu: <strong>@redeem.MinimumRequirements.ToString("C0")</strong></small>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">Thời hạng:</small><br>
+                        @if (redeem.IsLifeTime)
+                        {
+                            <small class="text-success">Vĩnh viễn</small>
+                        }
+                        else
+                        {
+                            <small>@Assignment.Utilities.DurationConverter.ConvertDurationToStringDescription(redeem.EndTime)</small>
+                        }
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Giá quy đổi:</small><br>
+                        <small><b>@redeem.Price.ToString("N0")</b> điểm</small>
+                    </div>
+                </div>
+                
+                <div class="card-footer mt-2">
+                    <button type="button" class="btn btn-success w-100" onclick="reward(@redeem.Id)">Quy đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+</div>
+
+<script src="~/js/conversion.js"></script>

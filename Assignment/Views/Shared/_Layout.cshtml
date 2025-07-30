@@ -13,7 +13,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">KShop</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">FastFood Express</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -39,6 +39,12 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Order" asp-action="Index">Quản lý đơn đặt hàng</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Redeem" asp-action="Index">Quản lý vật phẩm đổi thưởng</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Refund" asp-action="Index">Quản lý đơn hoàn tiền</a>
+                                </li>
                             }
                             @if (User.IsInRole("Shipper") || User.IsInRole("Admin"))
                             {
@@ -57,6 +63,9 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Voucher" asp-action="MyVoucher">Mã giảm giá của tôi</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Redeem" asp-action="Conversion">Đổi thưởng</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="UserApi" asp-action="Logout">Đăng xuất</a>

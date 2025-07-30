@@ -1,18 +1,13 @@
-﻿function startViewMap(lat, lng) {
-    const url = `https://www.google.com/maps/dir/?api=1&origin=current_location&destination=${lat},${lng}&travelmode=motorcycling`;
-    location.href = url;
-}
-
-let selectedId = 0;
+﻿let selectedId = 0;
 
 function startSelected(id) {
     selectedId = id;
 }
 
 function complete(id) {
-    fetch(`/api/orders/complete/${id}`, {
-            method: "PUT",
-        })
+    fetch(`/api/refund/${id}`, {
+        method: "PUT",
+    })
         .then((response) => {
             if (!response.ok) {
                 if (response.status === 422 || response.status === 401) {
@@ -21,7 +16,7 @@ function complete(id) {
 
                 if (!response.ok) {
                     return showErrorToast(
-                        "Lỗi khi hoàn thành đơn hàng. Vui lòng thử lại sau.",
+                        "Lỗi khi hoàn thành hoàn tiền. Vui lòng thử lại sau.",
                         4000
                     );
                 }
@@ -36,7 +31,7 @@ function complete(id) {
                 return;
             }
 
-            if (data.code == "ORDER_COMPLETED_TRANSPORT_SUCCESS") {
+            if (data.code == "COMPLETE_REFUND_SUCCESS") {
                 showSuccessToast(data.message, 4000);
                 setTimeout(() => location.reload(), 1000);
                 return;
@@ -47,9 +42,9 @@ function complete(id) {
 }
 
 function cancel() {
-    fetch(`/api/orders/cancel/${selectedId}`, {
-            method: "PUT",
-        })
+    fetch(`/api/refund/${selectedId}`, {
+        method: "DELETE",
+    })
         .then((response) => {
             if (!response.ok) {
                 if (response.status === 422 || response.status === 401) {
@@ -58,7 +53,7 @@ function cancel() {
 
                 if (!response.ok) {
                     return showErrorToast(
-                        "Lỗi khi hủy đơn hàng. Vui lòng thử lại sau.",
+                        "Lỗi khi từ chối hoàn tiền. Vui lòng thử lại sau.",
                         4000
                     );
                 }
@@ -73,7 +68,7 @@ function cancel() {
                 return;
             }
 
-            if (data.code == "ORDER_CANCELED_SUCCESS") {
+            if (data.code == "REFUSE_REFUND_SUCCESS") {
                 const deleteModal = document.getElementById("deleteModal");
                 const modal = bootstrap.Modal.getInstance(deleteModal);
                 if (modal) {
@@ -90,27 +85,11 @@ function cancel() {
         });
 }
 
-function search() {
-    const startTime = document.getElementById("startTime").value;
-    const endTime = document.getElementById("endTime").value;
-    const status = document.getElementById("status").value;
-
-    const params = [];
-    if (startTime && startTime < endTime) params.push(`start=${startTime}`);
-    if (endTime && endTime > startTime)
-        params.push(`end=${endTime}`);
-    if (status)
-        params.push(`status=${status}`);
-
-    const queryString = params.length > 0 ? params.join("&") : "";
-    location.href = `/recevied?${queryString}`;
-}
-
 /**
-* Hiển thị thông báo Thành công (màu xanh lá gradient).
-* @param {string} message - Nội dung thông báo.
-* @param {number} [duration=3000] - Thời gian hiển thị (mili giây).
-*/
+ * Hiển thị thông báo Thành công (màu xanh lá gradient).
+ * @param {string} message - Nội dung thông báo.
+ * @param {number} [duration=3000] - Thời gian hiển thị (mili giây).
+ */
 function showSuccessToast(message, duration = 3000) {
     Toastify({
         text: message,
@@ -119,7 +98,7 @@ function showSuccessToast(message, duration = 3000) {
         position: "right",
         backgroundColor: "linear-gradient(to right, #00b099, #96c93d)", // Màu xanh lá gradient
         stopOnFocus: true,
-        close: true
+        close: true,
     }).showToast();
 }
 
@@ -136,7 +115,7 @@ function showWarningToast(message, duration = 5000) {
         position: "right",
         backgroundColor: "linear-gradient(to right, #ffc400, #ff8c00)", // Màu cam/vàng gradient
         stopOnFocus: true,
-        close: true
+        close: true,
     }).showToast();
 }
 
@@ -153,6 +132,7 @@ function showErrorToast(message, duration = 7000) {
         position: "right",
         backgroundColor: "linear-gradient(to right, #ff5f6d, #ffc371)", // Màu đỏ/cam gradient
         stopOnFocus: true,
-        close: true
+        close: true,
     }).showToast();
 }
+

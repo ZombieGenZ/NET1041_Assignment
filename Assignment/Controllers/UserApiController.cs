@@ -58,6 +58,24 @@ namespace Assignment.Controllers
                 })
                 .ToList());
         }
+        [HttpGet]
+        [Route("api/users/accumulated-points")]
+        [Authorize]
+        public IActionResult GetAccumulatedPoints()
+        {
+            long? userId = CookieAuthHelper.GetUserId(HttpContext.User);
+
+            if (userId == null)
+            {
+                return NotFound();
+            }
+
+            return Json(new
+            {
+                code = "GET_ACCUMULATED_POINTS_SUCCESS",
+                points = _context.Users.Find(userId)!.AccumulatedPoints
+            });
+        }
 
         [HttpPost]
         [Route("api/users/register")]

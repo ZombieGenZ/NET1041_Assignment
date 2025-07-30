@@ -33,10 +33,10 @@ namespace Assignment.Controllers
                     foreach (var term in searchTerms)
                     {
                         var lowerCaseTerm = term.ToLower();
-                        query = query.Where(p =>
-                            p.Name.ToLower().Contains(lowerCaseTerm) ||
-                            p.Description.ToLower().Contains(lowerCaseTerm) ||
-                            p.Code.ToLower().Contains(lowerCaseTerm));
+                        query = query.Where(v =>
+                            v.Name.ToLower().Contains(lowerCaseTerm) ||
+                            v.Description.ToLower().Contains(lowerCaseTerm) ||
+                            v.Code.ToLower().Contains(lowerCaseTerm));
                     }
                 }
 

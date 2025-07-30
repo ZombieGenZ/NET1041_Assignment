@@ -4,6 +4,7 @@ using Assignment.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Assignment.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250730123427_v27")]
+    partial class v27
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,24 +128,6 @@ namespace Assignment.Migrations
                     b.HasKey("FileId");
 
                     b.ToTable("Files");
-                });
-
-            modelBuilder.Entity("Assignment.Models.ForgotPassword", b =>
-                {
-                    b.Property<string>("Token")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("ExpirationTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Token");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ForgotPasswords");
                 });
 
             modelBuilder.Entity("Assignment.Models.OrderDetail", b =>
@@ -341,7 +326,7 @@ namespace Assignment.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Assignment.Models.Redeems", b =>
+            modelBuilder.Entity("Assignment.Models.Redeem", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -367,9 +352,6 @@ namespace Assignment.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsLifeTime")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPublish")
                         .HasColumnType("bit");
 
                     b.Property<double?>("MaximumPercentageReduction")
@@ -421,9 +403,6 @@ namespace Assignment.Migrations
                         .IsRequired()
                         .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -511,24 +490,6 @@ namespace Assignment.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Assignment.Models.VerifyAccount", b =>
-                {
-                    b.Property<string>("Token")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("ExpirationTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Token");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("VerifyAccounts");
                 });
 
             modelBuilder.Entity("Assignment.Models.Vouchers", b =>
@@ -622,17 +583,6 @@ namespace Assignment.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Assignment.Models.ForgotPassword", b =>
-                {
-                    b.HasOne("Assignment.Models.Users", "User")
-                        .WithMany("ForgotPasswords")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Assignment.Models.OrderDetail", b =>
                 {
                     b.HasOne("Assignment.Models.Orders", "Order")
@@ -697,17 +647,6 @@ namespace Assignment.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Assignment.Models.VerifyAccount", b =>
-                {
-                    b.HasOne("Assignment.Models.Users", "User")
-                        .WithMany("VerifyAccounts")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Assignment.Models.Vouchers", b =>
                 {
                     b.HasOne("Assignment.Models.Users", "User")
@@ -736,10 +675,6 @@ namespace Assignment.Migrations
 
             modelBuilder.Entity("Assignment.Models.Users", b =>
                 {
-                    b.Navigation("ForgotPasswords");
-
-                    b.Navigation("VerifyAccounts");
-
                     b.Navigation("Vouchers");
                 });
 #pragma warning restore 612, 618
