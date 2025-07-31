@@ -85,6 +85,19 @@ function cancel() {
         });
 }
 
+function search() {
+    const startTime = document.getElementById("startTime").value;
+    const endTime = document.getElementById("endTime").value;
+
+    const params = [];
+    if (startTime && startTime < endTime) params.push(`start=${startTime}`);
+    if (endTime && endTime > startTime)
+        params.push(`end=${endTime}`);
+
+    const queryString = params.length > 0 ? params.join("&") : "";
+    location.href = `/refund?${queryString}`;
+}
+
 /**
  * Hiển thị thông báo Thành công (màu xanh lá gradient).
  * @param {string} message - Nội dung thông báo.

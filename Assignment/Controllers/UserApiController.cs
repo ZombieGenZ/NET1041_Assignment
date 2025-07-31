@@ -1,7 +1,10 @@
-﻿using Assignment.Models;
+﻿using System.Diagnostics.Eventing.Reader;
+using Assignment.Models;
 using Assignment.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace Assignment.Controllers
 {
@@ -152,7 +155,7 @@ namespace Assignment.Controllers
                 }
 
                 DateTime today = DateTime.Today;
-                if (user.DateOfBirth >= today)
+                if (user.DateOfBirth > today)
                 {
                     return UnprocessableEntity(new
                     {
@@ -277,6 +280,28 @@ namespace Assignment.Controllers
                 }
 
                 _context.Users.Add(newUser);
+
+                await _context.SaveChangesAsync();
+
+                string code = RandomStringGenerator.GenerateRandomAlphanumericString(10);
+
+                _context.Vouchers.Add(new Vouchers()
+                {
+                    Code = code,
+                    Name = "Voucher cho người dùng mới",
+                    Description = "Voucher này được cấp cho người dùng mới đăng ký tài khoản",
+                    Type = VoucherTypeEnum.Private,
+                    UserId = newUser.Id,
+                    DiscountType = DiscountTypeEnum.Percent,
+                    Discount = 30,
+                    Quantity = 1,
+                    StartTime = DateTime.Now,
+                    IsLifeTime = false,
+                    EndTime = DateTime.Now.AddDays(7),
+                    MinimumRequirements = 200000,
+                    UnlimitedPercentageDiscount = true
+                });
+
                 await _context.SaveChangesAsync();
 
                 await CookieAuthHelper.SignInUserAsync(
@@ -291,11 +316,12 @@ namespace Assignment.Controllers
 
                 _ = Task.Run(async () =>
                 {
-                    string subject = "Chào mừng đến với KShop";
-                    string html =
-                        "<div style=\"margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f0f8ff;\">\r\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\">\r\n        <!-- Header -->\r\n        <div style=\"background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding: 40px 30px; text-align: center;\">\r\n            <h1 style=\"color: #ffffff; font-size: 32px; margin: 0; font-weight: bold; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\">\r\n                🎉 Chào mừng đến với KShop! 🎉\r\n            </h1>\r\n            <p style=\"color: #e0f2fe; font-size: 18px; margin: 10px 0 0 0; opacity: 0.9;\">\r\n                Nơi mua sắm trực tuyến tuyệt vời nhất\r\n            </p>\r\n        </div>\r\n\r\n        <!-- Content -->\r\n        <div style=\"padding: 40px 30px;\">\r\n            <div style=\"text-align: center; margin-bottom: 30px;\">\r\n                <div style=\"width: 80px; height: 80px; background: linear-gradient(45deg, #2563eb, #1d4ed8); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);\">\r\n                    <span style=\"font-size: 36px; color: #ffffff;\">🛍️</span>\r\n                </div>\r\n                <h2 style=\"color: #1e40af; font-size: 24px; margin: 0 0 15px 0; font-weight: bold;\">\r\n                    Xin chào và cảm ơn bạn đã tham gia!\r\n                </h2>\r\n            </div>\r\n\r\n            <div style=\"background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;\">\r\n                <p style=\"color: #334155; font-size: 16px; line-height: 1.6; margin: 0;\">\r\n                    Chúng tôi rất vui mừng chào đón bạn gia nhập cộng đồng KShop! Tại đây, bạn sẽ khám phá hàng ngàn sản phẩm chất lượng với giá cả hợp lý và dịch vụ tuyệt vời.\r\n                </p>\r\n            </div>\r\n\r\n            <div style=\"text-align: center; margin: 35px 0;\">\r\n                <a href=\"#\" style=\"background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 50px; font-size: 16px; font-weight: bold; display: inline-block; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); transition: transform 0.2s;\">\r\n                    🛒 Bắt đầu mua sắm ngay\r\n                </a>\r\n            </div>\r\n\r\n            <div style=\"background-color: #f1f5f9; padding: 20px; border-radius: 10px; margin: 30px 0;\">\r\n                <h4 style=\"color: #1e40af; font-size: 18px; margin: 0 0 15px 0; font-weight: bold;\">\r\n                    📞 Liên hệ hỗ trợ:\r\n                </h4>\r\n                <p style=\"color: #475569; font-size: 14px; line-height: 1.5; margin: 0;\">\r\n                    <strong>Hotline:</strong> 1900-xxxx<br>\r\n                    <strong>Email:</strong> support@kshop.com<br>\r\n                    <strong>Thời gian:</strong> 8:00 - 22:00 hàng ngày\r\n                </p>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Footer -->\r\n        <div style=\"background-color: #1e40af; padding: 30px; text-align: center;\">\r\n            <p style=\"color: #e0f2fe; font-size: 14px; margin: 0 0 15px 0;\">\r\n                Cảm ơn bạn đã chọn KShop - Nơi mua sắm tin cậy!\r\n            </p>\r\n            <div style=\"border-top: 1px solid #3b82f6; padding-top: 15px; margin-top: 15px;\">\r\n                <p style=\"color: #94a3b8; font-size: 12px; margin: 0;\">\r\n                    © 2025 KShop. Tất cả quyền được bảo lưu.<br>\r\n                    Bạn nhận được email này vì đã đăng ký tài khoản KShop.\r\n                </p>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>";
+                    string subject = $"Chào mừng bạn đến với gia đình {MailForm.Trademark}!";
+                    string html = MailForm.Welcome(code);
 
                     await EmailSender.SendMail(_configuration, user.Email, subject, html);
+
+                    await VerifyAccount(user.Email);
                 });
 
                 return Ok(new
@@ -404,6 +430,434 @@ namespace Assignment.Controllers
             //    message = "Bạn đã đăng xuất thành công."
             //});
             return RedirectToAction("Index", "Home");
+        }
+        [HttpPost]
+        [Route("api/users/verify-account/{email}")]
+        public async Task<IActionResult> VerifyAccount(string email)
+        {
+            try
+            {
+                var result = _context.Users.Include(users => users.VerifyAccounts)
+                    .FirstOrDefault(u => u.Email.ToLower() == email.ToLower());
+
+                if (result == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Tài khoản không tồn tại"
+                    });
+                }
+
+                _context.VerifyAccounts.RemoveRange(result.VerifyAccounts);
+                VerifyAccount newVerifyAccount = new VerifyAccount()
+                {
+                    UserId = result.Id,
+                    ExpirationTime = DateTime.Now.AddDays(1)
+                };
+                _context.VerifyAccounts.Add(newVerifyAccount);
+                await _context.SaveChangesAsync();
+
+                _ = Task.Run(async () =>
+                {
+                    string subject = $"Xác minh toàn khoản {MailForm.Trademark} của bạn";
+                    string html = MailForm.VerifyAccount(newVerifyAccount.Token);
+
+                    await EmailSender.SendMail(_configuration, result.Email, subject, html);
+                });
+
+                return Ok(new
+                {
+                    code = "VERIFY_ACCOUNT_SUCCESS",
+                    message = "Gửi email xác thực tài khoản thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "VERIFY_ACCOUNT_FAILED",
+                    message = e.Message
+                });
+            }
+        }
+        [HttpPost]
+        [Route("api/users/forgot-password/{email}")]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            try
+            {
+                var result = _context.Users.Include(users => users.ForgotPasswords)
+                    .FirstOrDefault(u => u.Email.ToLower() == email.ToLower());
+
+                if (result == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Tài khoản không tồn tại"
+                    });
+                }
+
+                _context.ForgotPasswords.RemoveRange(result.ForgotPasswords);
+                ForgotPassword newForgotPassword = new ForgotPassword()
+                {
+                    UserId = result.Id,
+                    ExpirationTime = DateTime.Now.AddDays(1)
+                };
+                _context.ForgotPasswords.Add(newForgotPassword);
+                await _context.SaveChangesAsync();
+
+                _ = Task.Run(async () =>
+                {
+                    string subject = "Yêu cầu đặt lại mật khẩu";
+                    string html = MailForm.ForgotPassword(newForgotPassword.Token);
+
+                    await EmailSender.SendMail(_configuration, result.Email, subject, html);
+                });
+
+                return Ok(new
+                {
+                    code = "FORGOT_PASSWORD_SUCCESS",
+                    message = "Gửi email yêu cầu đặt lại mật khẩu thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "FORGOT_PASSWORD_FAILED",
+                    message = e.Message
+                });
+            }
+        }
+        [HttpGet]
+        [Route("api/users/get-user-type")]
+        [Authorize]
+        public IActionResult GetUserType()
+        {
+            try
+            {
+                long? userId = CookieAuthHelper.GetUserId(HttpContext.User);
+
+                if (userId == null)
+                {
+                    return NotFound();
+                }
+
+                var user = _context.Users.Find(userId);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                return Json(new
+                {
+                    code = "GET_USER_TYPE_SUCCESS",
+                    type = user.UserType
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "GET_USER_TYPE_FAILED",
+                    message = e.Message
+                });
+            }
+        }
+        [HttpGet]
+        [Route("api/users/get-user-password")]
+        [Authorize]
+        public IActionResult GetUserPassword()
+        {
+            try
+            {
+                long? userId = CookieAuthHelper.GetUserId(HttpContext.User);
+
+                if (userId == null)
+                {
+                    return NotFound();
+                }
+
+                var user = _context.Users.Find(userId);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                return Json(new
+                {
+                    code = "GET_USER_PASSWORD_SUCCESS",
+                    password = user.Password != null
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "GET_USER_PASSWORD_FAILED",
+                    message = e.Message
+                });
+            }
+        }
+        [HttpPut]
+        [Route("api/users/change-infomation")]
+        [Authorize]
+        public async Task<IActionResult> ChangeInfomation([FromBody] ChangeInfomation infomation)
+        {
+            try
+            {
+                long? userId = CookieAuthHelper.GetUserId(HttpContext.User);
+
+                if (userId == null)
+                {
+                    return NotFound();
+                }
+
+                var user = _context.Users.Find(userId);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                if (string.IsNullOrEmpty(infomation.Name) || string.IsNullOrEmpty(infomation.Email) ||
+                    string.IsNullOrWhiteSpace(infomation.Phone))
+                {
+                    List<string> errorMsg = new List<string>();
+                    if (string.IsNullOrEmpty(infomation.Name))
+                    {
+                        errorMsg.Add("tên người dùng");
+                    }
+
+                    if (string.IsNullOrEmpty(infomation.Email))
+                    {
+                        errorMsg.Add("địa chỉ email");
+                    }
+
+                    if (string.IsNullOrEmpty(infomation.Phone))
+                    {
+                        errorMsg.Add("số điện thoại");
+                    }
+
+                    string errMessage = "Vui lòng nhập " + string.Join(", ", errorMsg);
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = errMessage
+                    });
+                }
+
+                if (!EmailValidator.IsValidEmail(infomation.Email))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Địa chỉ email không hợp lệ"
+                    });
+                }
+
+                if (!PhoneNumberValidator.IsValidPhoneNumber(infomation.Phone))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Số điện thoại không hợp lệ"
+                    });
+                }
+
+                if (infomation.DateOfBirth > DateTime.Today)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Ngày sinh không hợp lệ"
+                    });
+                }
+
+                if (_context.Users.Any(u => u.Email == infomation.Email && u.Id != userId))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Địa chỉ email đã được sử dụng"
+                    });
+                }
+
+                if (_context.Users.Any(u => u.Phone == infomation.Phone && u.Id != userId))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Số điện thoại đã được sử dụng"
+                    });
+                }
+
+                user.Name = infomation.Name;
+                user.Email = infomation.Email.ToLower();
+                user.Phone = infomation.Phone;
+                user.DateOfBirth = infomation.DateOfBirth;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+
+                await CookieAuthHelper.SignOutUserAsync(HttpContext);
+                await CookieAuthHelper.SignInUserAsync(
+                    HttpContext,
+                    user.Id,
+                    user.Name,
+                    user.Role,
+                    user.Email.ToLower(),
+                    user.Phone,
+                    user.DateOfBirth
+                );
+
+                return Json(new
+                {
+                    code = "CHANGE_INFOMATION_SUCCESS",
+                    message = "Cập nhật thông tin thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "CHANGE_INFOMATION_FAILED",
+                    message = e.Message
+                });
+            }
+        }
+
+        [HttpPut]
+        [Route("api/users/change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePassword changePassword)
+        {
+            try
+            {
+                Users? user;
+                ForgotPassword? currentForgotPassword = null;
+                if (string.IsNullOrWhiteSpace(changePassword.Token))
+                {
+                    long? userId = CookieAuthHelper.GetUserId(HttpContext.User);
+                    if (userId == null)
+                    {
+                        return NotFound();
+                    }
+
+                    user = _context.Users.Include(users => users.ForgotPasswords).FirstOrDefault(u => u.Id == userId);
+
+                    if (user == null)
+                    {
+                        return NotFound();
+                    }
+                }
+                else
+                {
+                    var result = _context.ForgotPasswords
+                        .Include(fp => fp.User).ThenInclude(users => users.ForgotPasswords)
+                        .FirstOrDefault(fp => fp.Token == changePassword.Token);
+
+                    if (result == null || result.ExpirationTime < DateTime.Now)
+                    {
+                        return NotFound();
+                    }
+
+                    currentForgotPassword = result;
+                    user = result.User;
+                }
+
+                if (string.IsNullOrEmpty(changePassword.NewPassword) ||
+                    string.IsNullOrEmpty(changePassword.ConfirmPassword))
+                {
+                    List<string> errorMsg = new List<string>();
+                    if (string.IsNullOrEmpty(changePassword.NewPassword))
+                    {
+                        errorMsg.Add("mật khẩu mới");
+                    }
+
+                    if (string.IsNullOrEmpty(changePassword.ConfirmPassword))
+                    {
+                        errorMsg.Add("xác nhận mật khẩu mới");
+                    }
+
+                    string errMessage = "Vui lòng nhập " + string.Join(", ", errorMsg);
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = errMessage
+                    });
+                }
+
+                if (currentForgotPassword == null)
+                {
+                    if (user.Password != null)
+                    {
+                        if (string.IsNullOrWhiteSpace(changePassword.OldPassword))
+                        {
+                            return UnprocessableEntity(new
+                            {
+                                code = "INPUT_DATA_ERROR",
+                                message = "Vui lòng nhập mật khẩu cũ"
+                            });
+                        }
+
+                        if (user.Password != EncryptionHelper.EncryptToSHA512(changePassword.OldPassword))
+                        {
+                            return UnprocessableEntity(new
+                            {
+                                code = "INPUT_DATA_ERROR",
+                                message = "Mật khẩu không chính xác"
+                            });
+                        }
+                    }
+                }
+
+
+                if (changePassword.NewPassword != changePassword.ConfirmPassword)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Mật khẩu mới và xác nhận mật khẩu không khớp"
+                    });
+                }
+
+                if (!PasswordChecker.CheckStrongPassword(changePassword.NewPassword, out string errMsg))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = errMsg
+                    });
+                }
+
+                user.Password = EncryptionHelper.EncryptToSHA512(changePassword.NewPassword);
+                _context.Users.Update(user);
+                if (currentForgotPassword != null)
+                {
+                    _context.ForgotPasswords.RemoveRange(user.ForgotPasswords);
+                }
+
+                await _context.SaveChangesAsync();
+
+                await CookieAuthHelper.SignOutUserAsync(HttpContext);
+
+                return Json(new
+                {
+                    code = "CHANGE_PASSWORD_SUCCESS",
+                    message = "Cập nhật mật khẩu thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    code = "CHANGE_PASSWORD_FAILED",
+                    message = e.Message
+                });
+            }
         }
     }
 }

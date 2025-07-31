@@ -1,0 +1,157 @@
+﻿@model Users
+<link href="~/css/profile.css" rel="stylesheet" />
+@{
+    ViewData["Title"] = "Hồ sơ";
+}
+
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="avatar-section">
+            <h2>@Model.Name</h2>
+            @if (Model.Rank == UserRankEnum.None)
+            {
+                <div class="rank-badge rank-none">THÀNH VIÊN TÌM NĂNG</div>
+            }
+            else if (Model.Rank == UserRankEnum.Copper)
+            {
+                <div class="rank-badge rank-copper">THÀNH VIÊN ĐỒNG</div>
+            }
+            else if (Model.Rank == UserRankEnum.Silver)
+            {
+                <div class="rank-badge rank-silver">THÀNH VIÊN BẠC</div>
+            }
+            else if (Model.Rank == UserRankEnum.Gold)
+            {
+                <div class="rank-badge rank-gold">THÀNH VIÊN VÀNG</div>
+            }
+            else if (Model.Rank == UserRankEnum.Diamond)
+            {
+                <div class="rank-badge rank-diamond">THÀNH VIÊN KIM CƯƠNG</div>
+            }
+            @if (Model.MainProvider == "Google")
+            {
+                <div class="provider-badge provider-google">Tài khoản Google</div>
+            }
+            else if (Model.MainProvider == "Facebook")
+            {
+                <div class="provider-badge provider-facebook">Tài khoản Facebook</div>
+            }
+            else if (Model.MainProvider == "Github")
+            {
+                <div class="provider-badge provider-github">Tài khoản Github</div>
+            }
+            else if (Model.MainProvider == "Discord")
+            {
+                <div class="provider-badge provider-github">Tài khoản Discord</div>
+            }
+            else
+            {
+                <div class="provider-badge provider-default">Tài khoản mặc định</div>
+            }
+        </div>
+    </div>
+
+    <div class="profile-body">
+        <div class="points-section">
+            <h4><i class="fas fa-star"></i> Điểm tích lũy</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="points-number">@Model.AccumulatedPoints.ToString("N0")</div>
+                    <p>Điểm hiện tại</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="points-number">@Model.TotalAccumulatedPoints.ToString("N0")</div>
+                    <p>Tổng điểm tích lũy</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h5 class="mb-4"><i class="fas fa-user-circle text-primary"></i> Thông tin cá nhân</h5>
+
+            <div class="info-item">
+                <div class="info-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@Model.Email</div>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">Số điện thoại</div>
+                    <div class="info-value">@Model.Phone</div>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon" style="background: linear-gradient(135deg, #fd7e14, #ffc107);">
+                    <i class="fas fa-birthday-cake"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">Ngày sinh</div>
+                    <div class="info-value">@Model.DateOfBirth.ToString("dd/MM-yyyy")</div>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon" style="background: linear-gradient(135deg, #dc3545, #e91e63);">
+                    <i class="fas fa-user-tag"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">Vai trò</div>
+                    @if (Model.Role == "Customer")
+                    {
+                        <div class="info-value">Khách hàng</div>
+                    }
+                    else if (Model.Role == "Shipper")
+                    {
+                        <div class="info-value">Người giao hàng</div>
+                    }
+                    else if (Model.Role == "Admin")
+                    {
+                    <div class="info-value">Quản trị viên</div>
+                    }
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">Ngày tham gia</div>
+                    <div class="info-value">@Model.CreatedAt.ToString("dd/MM/yyyy")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h5 class="mb-4"><i class="fas fa-link text-primary"></i> Liên kết tài khoản</h5>
+
+            <div class="social-connections">
+                <div class="social-item @(Model.GoogleId == null ? "not-connected" : "connected")">
+                    <i class="fab fa-google"></i>
+                    Google
+                </div>
+                <div class="social-item @(Model.FacebookId == null ? "not-connected" : "connected")">
+                    <i class="fab fa-facebook"></i>
+                    Facebook
+                </div>
+                <div class="social-item @(Model.GitHubId == null ? "not-connected" : "connected")">
+                    <i class="fab fa-github"></i>
+                    GitHub
+                </div>
+                <div class="social-item @(Model.DiscordId == null ? "not-connected" : "connected")">
+                    <i class="fab fa-discord"></i>
+                    Discord
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,6 +1,6 @@
 ﻿function startViewMap(lat, lng) {
-    const url = `https://www.google.com/maps/dir/?api=1&origin=current_location&destination=${lat},${lng}&travelmode=motorcycling`;
-    location.href = url;
+    const url = `https://www.google.com/maps/dir/?api=1&origin=current_location&destination=$${lat},${lng}&travelmode=motorcycling`;
+    window.open(url, '_blank');
 }
 
 let selectedId = 0;

@@ -15,7 +15,6 @@
     <div class="row justify-content-center">
         @if (string.IsNullOrWhiteSpace(TempData["GoogleId"] as string) && string.IsNullOrWhiteSpace(TempData["FacebookId"] as string) && string.IsNullOrWhiteSpace(TempData["GithubId"] as string) && string.IsNullOrWhiteSpace(TempData["DiscordId"] as string))
         {
-            <!-- Original layout with larger card -->
             <div class="col-12 col-lg-10 col-xl-8">
                 <div class="card shadow-lg p-4">
                     <div class="card-body">
@@ -108,7 +107,6 @@
         }
         else
         {
-            <!-- Even smaller card when social media ID exists -->
             <div class="col-12 col-lg-6 col-xl-4">
                 <div class="card shadow-lg p-4">
                     <div class="card-body">

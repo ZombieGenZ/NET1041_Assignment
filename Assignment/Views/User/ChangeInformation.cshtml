@@ -1,0 +1,103 @@
+﻿<link rel="stylesheet" href="~/css/password.css" />
+@{
+    ViewData["Title"] = "Thay đổi thông tin tài khoản";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <div class="card shadow-lg p-4">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Thay đổi thông tin tài khoản</h2>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h4 class="mb-3">Thông tin cá nhân</h4>
+                            <div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">Tên người dùng</label>
+                                            <input type="text" class="form-control" id="name" placeholder="Tên người dùng của bạn" value="@(Assignment.Utilities.CookieAuthHelper.GetName(User))">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Địa chỉ email</label>
+                                            <input type="email" class="form-control" id="email" placeholder="Địa chỉ email của bạn" value="@(Assignment.Utilities.CookieAuthHelper.GetEmail(User))">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">Số điện thoại</label>
+                                            <input type="tel" class="form-control" id="phone" placeholder="Số điện thoại của bạn" value="@(Assignment.Utilities.CookieAuthHelper.GetPhone(User))">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="dateOfBirth" class="form-label">Ngày sinh</label>
+                                            <input type="date" class="form-control" id="dateOfBirth" value="@(Assignment.Utilities.CookieAuthHelper.GetDateOfBirth(User)?.ToString("yyyy-MM-dd"))">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary" onclick="ChangeInfomation()">Cập nhật thông tin cá nhân</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h4 class="mb-3">Thay đổi mật khẩu</h4>
+                            <div>
+                                <div class="mb-3" style="display: none" id="div_oldPassword">
+                                    <label for="oldPassword" class="form-label">Mật khẩu hiện tại</label>
+                                    <div class="password-input-container">
+                                        <input type="password" class="form-control" id="oldPassword" placeholder="Mật khẩu hiện tại của bạn">
+                                        <button class="password-toggle-button" type="button" onclick="togglePassword('oldPassword')">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                                            <div class="password-input-container">
+                                                <input type="password" class="form-control" id="newPassword" placeholder="Mật khẩu mới">
+                                                <button class="password-toggle-button" type="button" onclick="togglePassword('newPassword')">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                                            <div class="password-input-container">
+                                                <input type="password" class="form-control" id="confirmPassword" placeholder="Xác nhận mật khẩu mới">
+                                                <button class="password-toggle-button" type="button" onclick="togglePassword('confirmPassword')">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary" onclick="ChangePassword()">Đổi mật khẩu</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/changeinfomation.js"></script>

@@ -158,6 +158,25 @@ namespace Assignment.Controllers
                     });
                 }
 
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                {
+                    return Unauthorized(new
+                    {
+                        code = "UNAUTHORIZED",
+                        message = "Người dùng không tồn tại"
+                    });
+                }
+
+                if (user.UserType == UserTypeEnum.UnVerified)
+                {
+                    return Unauthorized(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Bạn cần xác minh tài khoản trước khi sử dụng chức năng này"
+                    });
+                }
+
                 double oldPrice = totalPrice;
 
                 if (order.Voucher != null)

@@ -1,6 +1,8 @@
-﻿using Assignment.Models;
+﻿using Assignment.Enum;
+using Assignment.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assignment.Controllers
 {
@@ -14,9 +16,40 @@ namespace Assignment.Controllers
         [HttpGet]
         [Route("refund")]
         [Authorize(Policy = "AdminPolicy")]
-        public IActionResult Index([FromQuery] DateTime? start)
+        public IActionResult Index([FromQuery] DateTime? start, [FromQuery] DateTime? end)
         {
-            return View(_context.Refunds.OrderByDescending(r => r.CreatedAt).ToList());
+            var query = _context.Refunds
+                .OrderByDescending(o => o.CreatedAt)
+                .AsQueryable();
+
+            SearchRefundModel searchRefundModel = new SearchRefundModel();
+
+            if (start.HasValue && end.HasValue && start > end)
+            {
+                query = query.Where(o => o.CreatedAt >= start.Value && o.CreatedAt <= end.Value);
+                searchRefundModel.StartTime = start.Value;
+                searchRefundModel.EndTime = end.Value;
+            }
+            else
+            {
+                if (start.HasValue)
+                {
+                    query = query.Where(o => o.CreatedAt >= start.Value);
+                    searchRefundModel.StartTime = start.Value;
+                }
+
+                if (end.HasValue)
+                {
+                    query = query.Where(o => o.CreatedAt <= end.Value);
+                    searchRefundModel.EndTime = end.Value;
+                }
+            }
+
+            var refunds = query.ToList();
+
+            searchRefundModel.Data = refunds;
+
+            return View(searchRefundModel);
         }
     }
 }

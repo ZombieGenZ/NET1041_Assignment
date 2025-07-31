@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Assignment.Controllers
 {
@@ -21,6 +22,11 @@ namespace Assignment.Controllers
         }
         [Route("register")]
         public IActionResult Register()
+        {
+            return View();
+        }
+        [Route("forgot-password")]
+        public IActionResult ForgotPassword()
         {
             return View();
         }
@@ -235,6 +241,73 @@ namespace Assignment.Controllers
             TempData["Name"] = username;
             TempData["Email"] = email;
             return RedirectToAction("Register");
+        }
+        [HttpGet]
+        [Route("verify-account")]
+        public IActionResult VerifyAccount([FromQuery] string token)
+        {
+            var result = _context.VerifyAccounts.FirstOrDefault(v => v.Token == token);
+
+            if (result == null || result.ExpirationTime < DateTime.Now)
+            {
+                return NotFound();
+            }
+
+            var user = _context.Users.Include(users => users.VerifyAccounts).FirstOrDefault(u => u.Id == result.UserId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.UserType = UserTypeEnum.Verified;
+            _context.Users.Update(user);
+            _context.VerifyAccounts.RemoveRange(user.VerifyAccounts);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Home");
+        }
+        [HttpGet]
+        [Route("reset-password")]
+        public IActionResult ResetPassword([FromQuery] string token)
+        {
+            var result = _context.ForgotPasswords.FirstOrDefault(v => v.Token == token);
+
+            if (result == null || result.ExpirationTime < DateTime.Now)
+            {
+                return NotFound();
+            }
+
+            return View();
+        }
+        [HttpGet]
+        [Route("change-infomation")]
+        [Authorize]
+        public IActionResult ChangeInformation()
+        {
+            return View();
+        }
+        [HttpGet]
+        [Route("profile")]
+        [Authorize]
+        public IActionResult Profile()
+        {
+            long? userId = CookieAuthHelper.GetUserId(HttpContext.User);
+
+            if (userId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var user = _context.Users
+                .FirstOrDefault(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View(user);
         }
     }
 }

@@ -1,0 +1,299 @@
+﻿:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gold-gradient: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+    --silver-gradient: linear-gradient(135deg, #bdc3c7 0%, #ecf0f1 100%);
+    --copper-gradient: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
+    --diamond-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.profile-container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.profile-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 60px 40px 40px;
+    position: relative;
+}
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+    }
+
+.avatar-section {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 6px solid rgba(255,255,255,0.3);
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: white;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.rank-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 10px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+.rank-none {
+    background: #6c757d;
+    color: white;
+}
+
+.rank-copper {
+    background: var(--copper-gradient);
+    color: white;
+}
+
+.rank-silver {
+    background: var(--silver-gradient);
+    color: #2c3e50;
+}
+
+.rank-gold {
+    background: var(--gold-gradient);
+    color: white;
+}
+
+.rank-diamond {
+    background: var(--diamond-gradient);
+    color: white;
+}
+
+.profile-body {
+    padding: 40px;
+}
+
+.info-card {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    }
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+    .info-item:hover {
+        background: #f0f8ff;
+        transform: translateX(5px);
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+
+.info-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    color: white;
+    font-size: 18px;
+}
+
+.info-content {
+    flex: 1;
+}
+
+.info-label {
+    font-size: 12px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.info-value {
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.points-section {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.points-number {
+    font-size: 48px;
+    font-weight: 700;
+    margin: 20px 0;
+}
+
+.social-connections {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.social-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+    .social-item.connected {
+        background: #28a745;
+        color: white;
+    }
+
+    .social-item.not-connected {
+        background: #e9ecef;
+        color: #6c757d;
+    }
+
+    .social-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .social-item i {
+        margin-right: 8px;
+        font-size: 16px;
+    }
+
+.edit-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: white;
+    border-radius: 50px;
+    padding: 12px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+    .edit-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(-2px);
+    }
+
+.provider-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.provider-default {
+    background: #6c757d;
+    color: white;
+}
+
+.provider-google {
+    background: #db4437;
+    color: white;
+}
+
+.provider-facebook {
+    background: #3b5998;
+    color: white;
+}
+
+.provider-github {
+    background: #333;
+    color: white;
+}
+
+.provider-discord {
+    background: #7289da;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        margin: 20px;
+        border-radius: 15px;
+    }
+
+    .profile-header {
+        padding: 40px 20px 30px;
+    }
+
+    .profile-body {
+        padding: 20px;
+    }
+
+    .info-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .info-icon {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}

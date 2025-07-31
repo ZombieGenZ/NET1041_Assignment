@@ -154,6 +154,24 @@ function LoadData(search) {
     });
 }
 
+function Search() {
+    const searchValue = document.getElementById("search").value.trim();
+
+    const customEncodeUriComponent = (value) => {
+        return encodeURIComponent(value).replace(/%20/g, "+");
+    };
+
+    const params = [];
+    if (searchValue) params.push(`text=${customEncodeUriComponent(searchValue)}`);
+
+    const queryString = params.length > 0 ? params.join("&") : "";
+    if (queryString) {
+        LoadData(queryString);
+    } else {
+        LoadData();
+    }
+}
+
 function startCreate() {
   clearEvent();
   clearClass();
