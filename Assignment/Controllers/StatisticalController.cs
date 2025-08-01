@@ -1,6 +1,7 @@
 ﻿using Assignment.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Assignment.Enum;
 
 namespace Assignment.Controllers
 {
@@ -28,11 +29,13 @@ namespace Assignment.Controllers
                         .ThenInclude(od => od.Product)
                             .ThenInclude(p => p.Category)
                     .Include(o => o.User)
-                    .Where(o => o.CreatedTime >= dateRange.startDate && o.CreatedTime <= dateRange.endDate);
+                    .Where(o => o.CreatedTime >= dateRange.startDate &&
+                               o.CreatedTime <= dateRange.endDate &&
+                               o.Status == OrderStatus.Completed);
 
                 var orders = ordersQuery.ToList();
 
-                model.TotalRevenue = orders.Sum(o => o.TotalBill);
+                model.TotalRevenue = orders.Sum(o => o.TotalPrice + (o.Fee - o.FeeExcludingTax));
                 model.TotalProducts = orders.SelectMany(o => o.OrderDetails).Sum(od => od.TotalQuantityPreItems);
                 model.TotalOrders = orders.Count();
 
@@ -43,7 +46,9 @@ namespace Assignment.Controllers
                 };
 
                 var chartOrdersQuery = _context.Orders
-                    .Where(o => o.CreatedTime >= chartDateRange.startDate && o.CreatedTime <= chartDateRange.endDate);
+                    .Where(o => o.CreatedTime >= chartDateRange.startDate &&
+                               o.CreatedTime <= chartDateRange.endDate &&
+                               o.Status == OrderStatus.Completed);
 
                 if (chartPeriod == "week")
                 {
@@ -54,7 +59,7 @@ namespace Assignment.Controllers
 
                         var dayRevenue = chartOrdersQuery
                             .Where(o => o.CreatedTime >= dayStart && o.CreatedTime <= dayEnd)
-                            .Sum(o => (decimal)o.TotalBill);
+                            .Sum(o => (decimal)(o.TotalPrice + (o.Fee - o.FeeExcludingTax)));
 
                         revenueChartData.Labels.Add(GetDayOfWeekVietnamese(dayStart.DayOfWeek));
                         revenueChartData.Data.Add(dayRevenue);
@@ -67,7 +72,7 @@ namespace Assignment.Controllers
                     {
                         var weekRevenue = chartOrdersQuery
                             .Where(o => o.CreatedTime >= weeksInMonth[i].start && o.CreatedTime <= weeksInMonth[i].end)
-                            .Sum(o => (decimal)o.TotalBill);
+                            .Sum(o => (decimal)(o.TotalPrice + (o.Fee - o.FeeExcludingTax)));
 
                         revenueChartData.Labels.Add($"Tuần {i + 1}");
                         revenueChartData.Data.Add(weekRevenue);
@@ -82,7 +87,7 @@ namespace Assignment.Controllers
 
                         var monthRevenue = chartOrdersQuery
                             .Where(o => o.CreatedTime >= monthStart && o.CreatedTime <= monthEnd)
-                            .Sum(o => (decimal)o.TotalBill);
+                            .Sum(o => (decimal)(o.TotalPrice + (o.Fee - o.FeeExcludingTax)));
 
                         revenueChartData.Labels.Add($"T{i}");
                         revenueChartData.Data.Add(monthRevenue);
@@ -95,7 +100,9 @@ namespace Assignment.Controllers
                     .Include(o => o.OrderDetails)
                         .ThenInclude(od => od.Product)
                             .ThenInclude(p => p.Category)
-                    .Where(o => o.CreatedTime >= categoryDateRange.startDate && o.CreatedTime <= categoryDateRange.endDate);
+                    .Where(o => o.CreatedTime >= categoryDateRange.startDate &&
+                               o.CreatedTime <= categoryDateRange.endDate &&
+                               o.Status == OrderStatus.Completed);
 
                 var categoryData = categoryOrdersQuery
                     .SelectMany(o => o.OrderDetails)
@@ -119,7 +126,9 @@ namespace Assignment.Controllers
                     .Include(o => o.OrderDetails)
                         .ThenInclude(od => od.Product)
                             .ThenInclude(p => p.Category)
-                    .Where(o => o.CreatedTime >= productsDateRange.startDate && o.CreatedTime <= productsDateRange.endDate);
+                    .Where(o => o.CreatedTime >= productsDateRange.startDate &&
+                               o.CreatedTime <= productsDateRange.endDate &&
+                               o.Status == OrderStatus.Completed);
 
                 var topProducts = productsOrdersQuery
                     .SelectMany(o => o.OrderDetails)
@@ -140,14 +149,16 @@ namespace Assignment.Controllers
                 var customersOrdersQuery = _context.Orders
                     .Include(o => o.User)
                     .Include(o => o.OrderDetails)
-                    .Where(o => o.CreatedTime >= customersDateRange.startDate && o.CreatedTime <= customersDateRange.endDate);
+                    .Where(o => o.CreatedTime >= customersDateRange.startDate &&
+                               o.CreatedTime <= customersDateRange.endDate &&
+                               o.Status == OrderStatus.Completed);
 
                 var customerOrders = customersOrdersQuery
                     .Select(o => new
                     {
                         CustomerName = o.User != null ? o.User.Name : o.Name,
                         UserRank = o.User != null ? o.User.Rank : (UserRankEnum?)null,
-                        TotalBill = o.TotalBill
+                        Revenue = o.TotalPrice + (o.Fee - o.FeeExcludingTax)
                     })
                     .ToList();
 
@@ -161,7 +172,7 @@ namespace Assignment.Controllers
                         Name = g.Key.CustomerName,
                         Type = g.Key.CustomerType,
                         Orders = g.Count(),
-                        Revenue = g.Sum(o => o.TotalBill)
+                        Revenue = g.Sum(o => o.Revenue)
                     })
                     .OrderByDescending(x => x.Orders)
                     .Take(10)
@@ -192,6 +203,7 @@ namespace Assignment.Controllers
 
             return View(model);
         }
+
         private (DateTime startDate, DateTime endDate) GetDateRange(string periodType)
         {
             var now = DateTime.Now;
@@ -253,6 +265,7 @@ namespace Assignment.Controllers
                 _ => "Khách hàng tìm năng"
             };
         }
+
         private List<(DateTime start, DateTime end)> GetWeeksInMonth(DateTime month)
         {
             var weeks = new List<(DateTime start, DateTime end)>();
