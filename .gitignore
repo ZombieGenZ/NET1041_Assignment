@@ -58,3 +58,5 @@ web.config.user
 .history/
 
 Assignment/wwwroot/Uploads/**
+!Assignment/wwwroot/Uploads/.gitkeep
+!Assignment/wwwroot/Uploads/
