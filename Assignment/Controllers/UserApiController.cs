@@ -1,10 +1,8 @@
-﻿using System.Diagnostics.Eventing.Reader;
-using Assignment.Models;
+﻿using Assignment.Models;
 using Assignment.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace Assignment.Controllers
 {
@@ -17,27 +15,56 @@ namespace Assignment.Controllers
             _context = context;
             _configuration = configuration;
         }
-
         [HttpGet]
         [Route("api/users")]
         [Authorize(Policy = "AdminPolicy")]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] string? text)
         {
-            return Json(_context.Users
+            var usersQuery = _context.Users.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                string searchLower = text.Trim().ToLower();
+                usersQuery = usersQuery.Where(u =>
+                    u.Name.ToLower().Contains(searchLower) ||
+                    u.Email.ToLower().Contains(searchLower) ||
+                    u.Phone.Contains(searchLower)
+                );
+            }
+
+            var allUsers = usersQuery
                 .Select(u => new
                 {
-                    u.Id,
-                    u.Name,
-                    u.Email,
-                    u.Phone,
-                    u.DateOfBirth,
-                    u.Rank,
-                    u.Role,
-                    u.UserType,
-                    u.CreatedAt,
-                    u.MainProvider
+                    User = u,
+                    OrderCount = _context.Orders.Count(o => o.UserId == u.Id)
                 })
-                .ToList());
+                .ToList();
+
+            var usersWithRank = allUsers
+                .OrderByDescending(x => x.User.TotalAccumulatedPoints)
+                .ThenByDescending(x => x.OrderCount)
+                .Select((x, idx) => new
+                {
+                    x.User.Id,
+                    x.User.Name,
+                    x.User.Email,
+                    x.User.Phone,
+                    x.User.DateOfBirth,
+                    x.User.Rank,
+                    x.User.TotalAccumulatedPoints,
+                    x.User.Role,
+                    x.User.UserType,
+                    x.User.CreatedAt,
+                    x.User.MainProvider,
+                    Top = idx + 1,
+                    x.User.PenaltyIsBanned,
+                    x.User.PenaltyStartTime,
+                    x.User.PenaltyReason,
+                    x.User.PenaltyExpiredTime
+                })
+                .ToList();
+
+            return Json(usersWithRank);
         }
         [HttpGet]
         [Route("api/users/shipper")]
@@ -54,10 +81,15 @@ namespace Assignment.Controllers
                     u.Phone,
                     u.DateOfBirth,
                     u.Rank,
+                    u.TotalAccumulatedPoints,
                     u.Role,
                     u.UserType,
                     u.CreatedAt,
-                    u.MainProvider
+                    u.MainProvider,
+                    u.PenaltyIsBanned,
+                    u.PenaltyStartTime,
+                    u.PenaltyReason,
+                    u.PenaltyExpiredTime
                 })
                 .ToList());
         }
@@ -390,6 +422,36 @@ namespace Assignment.Controllers
                         code = "INPUT_DATA_ERROR",
                         message = "Địa chỉ email hoặc mật khẩu không chính xác"
                     });
+                }
+
+                if (userEntity.PenaltyIsBanned)
+                {
+                    if (userEntity.PenaltyExpiredTime != null && userEntity.PenaltyExpiredTime < DateTime.Now)
+                    {
+                        userEntity.PenaltyIsBanned = false;
+                        userEntity.PenaltyStartTime = null;
+                        userEntity.PenaltyReason = null;
+                        userEntity.PenaltyExpiredTime = null;
+                        _context.Users.Update(userEntity);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        if (userEntity.PenaltyIsLifeTime)
+                        {
+                            return UnprocessableEntity(new
+                            {
+                                code = "INPUT_DATA_ERROR",
+                                message = $"Tài khoản của bạn đã bị khóa vĩnh viễn vì lý do {userEntity.PenaltyReason}"
+                            });
+                        }
+
+                        return UnprocessableEntity(new
+                        {
+                            code = "INPUT_DATA_ERROR",
+                            message = $"Tài khoản của bạn đã bị khóa vì lý do {userEntity.PenaltyReason} và sẽ được mở khóa vào {userEntity.PenaltyExpiredTime?.ToString("hh:mm:ss dd/MM/yyyy")}"
+                        });
+                    }
                 }
 
                 await CookieAuthHelper.SignInUserAsync(
@@ -855,6 +917,168 @@ namespace Assignment.Controllers
                 return StatusCode(500, new
                 {
                     code = "CHANGE_PASSWORD_FAILED",
+                    message = e.Message
+                });
+            }
+        }
+
+        [HttpPut]
+        [Route("api/users/ban")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Ban([FromBody] BannedModel banned)
+        {
+            try
+            {
+                long? currrentUserId = CookieAuthHelper.GetUserId(HttpContext.User);
+
+                if (currrentUserId == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Không thể lấy thông tin người dùng của bạn"
+                    });
+                }
+
+                var currentUser = _context.Users.FirstOrDefault(u => u.Id == currrentUserId);
+
+                if (currentUser == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Không thể lấy thông tin người dùng của bạn"
+                    });
+                }
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == banned.UserId);
+
+                if (user == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Người dùng không tồn tại"
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(banned.Reason))
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Không được để trống nội dung trừng phạt"
+                    });
+                }
+
+                if (!banned.IsLifeTime)
+                {
+                    if (banned.EndTime == null || !DurationConverter.IsValidDurationString(banned.EndTime))
+                    {
+                        return UnprocessableEntity(new
+                        {
+                            code = "INPUT_DATA_ERROR",
+                            message = "Thời hạn trừng phạt không hợp lệ"
+                        });
+                    }
+                }
+
+                if (user.PenaltyIsBanned)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Người dùng đã bị trừng phạt"
+                    });
+                }
+
+                if (currentUser.Permission < user.Permission)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Bạn không đủ quyền lực để khóa tài khoản này"
+                    });
+                }
+
+                if (user.Id == currentUser.Id)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Bạn không thể khóa tài khoản của chính mình"
+                    });
+                }
+
+                user.PenaltyIsBanned = true;
+                user.PenaltyStartTime = DateTime.Now;
+                user.PenaltyReason = banned.Reason;
+                user.PenaltyIsLifeTime = banned.IsLifeTime;
+                user.PenaltyExpiredTime =
+                    banned.IsLifeTime ? null : DurationConverter.ConvertDurationToDateTime(banned.EndTime);
+                _context.Users.Update(user);
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    code = "BANNED_SUCCESS",
+                    message = "Khóa tài khoản thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return Json(new
+                {
+                    code = "BANNED_FAILED",
+                    message = e.Message
+                });
+            }
+        }
+
+        [HttpPut]
+        [Route("api/users/unban/{id:long}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult UnBan(long id)
+        {
+            try
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Id == id);
+
+                if (user == null)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Người dùng không tồn tại"
+                    });
+                }
+
+                if (!user.PenaltyIsBanned)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Người dùng không bị trừng phạt"
+                    });
+                }
+
+                user.PenaltyIsBanned = false;
+                user.PenaltyStartTime = null;
+                user.PenaltyReason = null;
+                user.PenaltyExpiredTime = null;
+                _context.Users.Update(user);
+                _context.SaveChanges();
+                return Json(new
+                {
+                    code = "UNBANNED_SUCCESS",
+                    message = "Mở khóa tài khoản thành công"
+                });
+            }
+            catch (Exception e)
+            {
+                return Json(new
+                {
+                    code = "UNBANNED_FAILED",
                     message = e.Message
                 });
             }

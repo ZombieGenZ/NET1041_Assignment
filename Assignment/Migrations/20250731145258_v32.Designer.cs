@@ -4,6 +4,7 @@ using Assignment.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Assignment.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250731145258_v32")]
+    partial class v32
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -486,7 +489,7 @@ namespace Assignment.Migrations
                     b.Property<string>("Password")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("PenaltyExpiredTime")
+                    b.Property<DateTime>("PenaltyExpiredTime")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("PenaltyIsBanned")
@@ -496,14 +499,9 @@ namespace Assignment.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("PenaltyReason")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("PenaltyStartTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("Permission")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("Phone")
                         .IsRequired()

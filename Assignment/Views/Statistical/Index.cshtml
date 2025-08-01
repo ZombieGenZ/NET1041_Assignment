@@ -1,0 +1,406 @@
+﻿@model Assignment.Models.StatisticalModel
+@{
+    ViewData["Title"] = "Bảng Điều Khiển Thống Kê Bán Hàng";
+
+    var selectedPeriod = ViewBag.SelectedPeriod?.ToString() ?? "month";
+    var chartPeriod = ViewBag.ChartPeriod?.ToString() ?? "month";
+    var categoryPeriod = ViewBag.CategoryPeriod?.ToString() ?? "month";
+    var productsPeriod = ViewBag.ProductsPeriod?.ToString() ?? "month";
+    var customersPeriod = ViewBag.CustomersPeriod?.ToString() ?? "month";
+
+    var periods = new Dictionary<string, string> {
+        {"today", "Hôm nay"},
+        {"week", "Tuần này"},
+        {"month", "Tháng này"},
+        {"year", "Năm này"},
+        {"all", "Mọi thời gian"}
+    };
+
+    var chartPeriods = new Dictionary<string, string> {
+        {"week", "Tuần này"},
+        {"month", "Tháng này"},
+        {"year", "Năm này"}
+    };
+}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+
+<link href="~/css/statistical.css" rel="stylesheet" />
+
+<div class="container-fluid py-4">
+    <div class="filter-container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="fas fa-chart-bar text-primary"></i> Thống Kê Tổng Quan</h6>
+            <form method="get" id="statsFilterForm">
+                <select class="filter-select" name="period" id="statsFilter" onchange="this.form.submit()">
+                    @foreach (var period in periods)
+                    {
+                        if (period.Key == selectedPeriod)
+                        {
+                            <option value="@period.Key" selected>@period.Value</option>
+                        }
+                        else
+                        {
+                            <option value="@period.Key">@period.Value</option>
+                        }
+                    }
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="stat-card revenue">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value" id="totalRevenue">0</div>
+                        <div class="stat-label">Tổng Doanh Thu</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="stat-card products">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value" id="totalProducts">0</div>
+                        <div class="stat-label">Sản Phẩm Đã Bán</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="stat-card sales">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value" id="totalOrders">0</div>
+                        <div class="stat-label">Đơn Hàng</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="filter-container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-chart-area text-primary"></i> Biểu Đồ Doanh Thu</h6>
+                    <form method="get" id="revenueChartFilterForm">
+                        <input type="hidden" name="period" value="@selectedPeriod" />
+                        <select class="filter-select" name="chartPeriod" id="revenueChartFilter" onchange="this.form.submit()">
+                            @foreach (var period in chartPeriods)
+                            {
+                                if (period.Key == chartPeriod)
+                                {
+                                    <option value="@period.Key" selected>@period.Value</option>
+                                }
+                                else
+                                {
+                                    <option value="@period.Key">@period.Value</option>
+                                }
+                            }
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="filter-container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie text-primary"></i> Phân Bố Sản Phẩm</h6>
+                    <form method="get" id="categoryChartFilterForm">
+                        <input type="hidden" name="period" value="@selectedPeriod" />
+                        <input type="hidden" name="chartPeriod" value="@chartPeriod" />
+                        <select class="filter-select" name="categoryPeriod" id="categoryChartFilter" onchange="this.form.submit()">
+                            @foreach (var period in periods)
+                            {
+                                if (period.Key == categoryPeriod)
+                                {
+                                    <option value="@period.Key" selected>@period.Value</option>
+                                }
+                                else
+                                {
+                                    <option value="@period.Key">@period.Value</option>
+                                }
+                            }
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="filter-container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-trophy text-warning"></i> TOP Sản Phẩm Bán Chạy Nhất</h6>
+                    <form method="get" id="topProductsFilterForm">
+                        <input type="hidden" name="period" value="@selectedPeriod" />
+                        <input type="hidden" name="chartPeriod" value="@chartPeriod" />
+                        <input type="hidden" name="categoryPeriod" value="@categoryPeriod" />
+                        <select class="filter-select" name="productsPeriod" id="topProductsFilter" onchange="this.form.submit()">
+                            @foreach (var period in periods)
+                            {
+                                if (period.Key == productsPeriod)
+                                {
+                                    <option value="@period.Key" selected>@period.Value</option>
+                                }
+                                else
+                                {
+                                    <option value="@period.Key">@period.Value</option>
+                                }
+                            }
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="top-list">
+                <div id="topProductsList">
+                    @if (Model.TopProducts != null && Model.TopProducts.Any())
+                    {
+                        @for (int i = 0; i < Model.TopProducts.Count; i++)
+                        {
+                            var product = Model.TopProducts[i];
+                            var rankClass = i == 0 ? "first" : i == 1 ? "second" : i == 2 ? "third" : "";
+                            <div class="top-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="rank-badge @rankClass">@(i + 1)</div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-1">@product.Name</h6>
+                                        <small class="text-muted">@product.Category</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">@product.Quantity.ToString("N0") sp</div>
+                                    <small class="text-muted">@String.Format("{0:N0}", product.Revenue) VND</small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>Không có dữ liệu sản phẩm</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mt-2 mt-lg-0">
+            <div class="filter-container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-users text-success"></i> TOP Khách Hàng Mua Nhiều Nhất</h6>
+                    <form method="get" id="topCustomersFilterForm">
+                        <input type="hidden" name="period" value="@selectedPeriod" />
+                        <input type="hidden" name="chartPeriod" value="@chartPeriod" />
+                        <input type="hidden" name="categoryPeriod" value="@categoryPeriod" />
+                        <input type="hidden" name="productsPeriod" value="@productsPeriod" />
+                        <select class="filter-select" name="customersPeriod" id="topCustomersFilter" onchange="this.form.submit()">
+                            @foreach (var period in periods)
+                            {
+                                if (period.Key == customersPeriod)
+                                {
+                                    <option value="@period.Key" selected>@period.Value</option>
+                                }
+                                else
+                                {
+                                    <option value="@period.Key">@period.Value</option>
+                                }
+                            }
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="top-list">
+                <div id="topCustomersList">
+                    @if (Model.TopCustomers != null && Model.TopCustomers.Any())
+                    {
+                        @for (int i = 0; i < Model.TopCustomers.Count; i++)
+                        {
+                            var customer = Model.TopCustomers[i];
+                            var rankClass = i == 0 ? "first" : i == 1 ? "second" : i == 2 ? "third" : "";
+                            <div class="top-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="rank-badge @rankClass">@(i + 1)</div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-1">@customer.Name</h6>
+                                        <small class="text-muted">@customer.Type</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">@customer.Orders.ToString("N0") đơn</div>
+                                    <small class="text-muted">@String.Format("{0:N0}", customer.Revenue) VND</small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-3x mb-3"></i>
+                            <p>Không có dữ liệu khách hàng</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    let revenueChart, categoryChart;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initRevenueChart();
+        initCategoryChart();
+    });
+
+    function initRevenueChart() {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+
+        const revenueLabels = @Html.Raw(Json.Serialize(Model.RevenueChart?.Labels ?? new List<string>()));
+        const revenueData = @Html.Raw(Json.Serialize(Model.RevenueChart?.Data ?? new List<decimal>()));
+
+        revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Doanh thu (VND)',
+                    data: revenueData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN').format(value) + ' VND';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function initCategoryChart() {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+
+        const categoryLabels = @Html.Raw(Json.Serialize(Model.CategoryChart?.Labels ?? new List<string>()));
+        const categoryData = @Html.Raw(Json.Serialize(Model.CategoryChart?.Data ?? new List<decimal>()));
+
+        categoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryData,
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF',
+                        '#FF9F40',
+                        '#FF6384',
+                        '#C9CBCF'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function animateValue(element, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const current = Math.floor(progress * (end - start) + start);
+            element.innerHTML = new Intl.NumberFormat('vi-VN').format(current);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            const revenueElement = document.querySelector('.stat-card.revenue .stat-value');
+            const productsElement = document.querySelector('.stat-card.products .stat-value');
+            const salesElement = document.querySelector('.stat-card.sales .stat-value');
+
+            if (revenueElement && productsElement && salesElement) {
+                const revenueValue = Number(@(Model.TotalRevenue.ToString().Replace(",", ".")));
+                const productsValue = @Model.TotalProducts;
+                const salesValue = @Model.TotalOrders;
+
+                animateValue(revenueElement, 0, revenueValue, 2000);
+                animateValue(productsElement, 0, productsValue, 2000);
+                animateValue(salesElement, 0, salesValue, 2000);
+            }
+        }, 500);
+    });
+</script>

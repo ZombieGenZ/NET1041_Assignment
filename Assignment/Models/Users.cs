@@ -50,6 +50,21 @@ namespace Assignment.Models
         [DefaultValue("Default")]
         public string MainProvider { get; set; } = "Default";
         [Required]
+        [DefaultValue(false)]
+        public bool PenaltyIsBanned { get; set; } = false;
+        [DefaultValue(null)]
+        public DateTime? PenaltyStartTime { get; set; } = null;
+        [StringLength(500)]
+        [DefaultValue(null)]
+        public string? PenaltyReason { get; set; } = null;
+        [DefaultValue(null)]
+        public DateTime? PenaltyExpiredTime { get; set; } = null;
+        [DefaultValue(false)]
+        public bool PenaltyIsLifeTime { get; set; } = false;
+        [DefaultValue(0)]
+        [Range(0, long.MaxValue)]
+        public long Permission { get; set; } = 0;
+        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;

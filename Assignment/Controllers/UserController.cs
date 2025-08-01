@@ -15,6 +15,13 @@ namespace Assignment.Controllers
         {
             _context = context;
         }
+        [HttpGet]
+        [Route("users")]
+        [Authorize(Policy = "AdminPolicy")]
+        public IActionResult Index()
+        {
+            return View();
+        }
         [Route("login")]
         public IActionResult Login()
         {
@@ -63,6 +70,32 @@ namespace Assignment.Controllers
                     user.GoogleId = googleId;
                     user.UpdatedAt = DateTime.Now;
                     await _context.SaveChangesAsync();
+                }
+
+                if (user.PenaltyIsBanned)
+                {
+                    if (user.PenaltyExpiredTime != null && user.PenaltyExpiredTime < DateTime.Now)
+                    {
+                        user.PenaltyIsBanned = false;
+                        user.PenaltyStartTime = null;
+                        user.PenaltyReason = null;
+                        user.PenaltyExpiredTime = null;
+                        _context.Users.Update(user);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        if (user.PenaltyIsLifeTime)
+                        {
+                            TempData["message"] =
+                                $"Tài khoản của bạn đã bị khóa vĩnh viễn vì lý do {user.PenaltyReason}";
+                            return RedirectToAction("Login");
+                        }
+
+                        TempData["message"] =
+                            $"Tài khoản của bạn đã bị khóa vì lý do {user.PenaltyReason} và sẽ được mở khóa vào {user.PenaltyExpiredTime?.ToString("hh:mm:ss dd/MM/yyyy")}";
+                        return RedirectToAction("Login");
+                    }
                 }
 
                 await CookieAuthHelper.SignInUserAsync(
@@ -115,6 +148,32 @@ namespace Assignment.Controllers
                     user.FacebookId = facebookId;
                     user.UpdatedAt = DateTime.Now;
                     await _context.SaveChangesAsync();
+                }
+
+                if (user.PenaltyIsBanned)
+                {
+                    if (user.PenaltyExpiredTime != null && user.PenaltyExpiredTime < DateTime.Now)
+                    {
+                        user.PenaltyIsBanned = false;
+                        user.PenaltyStartTime = null;
+                        user.PenaltyReason = null;
+                        user.PenaltyExpiredTime = null;
+                        _context.Users.Update(user);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        if (user.PenaltyIsLifeTime)
+                        {
+                            TempData["message"] =
+                                $"Tài khoản của bạn đã bị khóa vĩnh viễn vì lý do {user.PenaltyReason}";
+                            return RedirectToAction("Login");
+                        }
+
+                        TempData["message"] =
+                            $"Tài khoản của bạn đã bị khóa vì lý do {user.PenaltyReason} và sẽ được mở khóa vào {user.PenaltyExpiredTime?.ToString("hh:mm:ss dd/MM/yyyy")}";
+                        return RedirectToAction("Login");
+                    }
                 }
 
                 await CookieAuthHelper.SignInUserAsync(
@@ -171,6 +230,32 @@ namespace Assignment.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+                if (user.PenaltyIsBanned)
+                {
+                    if (user.PenaltyExpiredTime != null && user.PenaltyExpiredTime < DateTime.Now)
+                    {
+                        user.PenaltyIsBanned = false;
+                        user.PenaltyStartTime = null;
+                        user.PenaltyReason = null;
+                        user.PenaltyExpiredTime = null;
+                        _context.Users.Update(user);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        if (user.PenaltyIsLifeTime)
+                        {
+                            TempData["message"] =
+                                $"Tài khoản của bạn đã bị khóa vĩnh viễn vì lý do {user.PenaltyReason}";
+                            return RedirectToAction("Login");
+                        }
+
+                        TempData["message"] =
+                            $"Tài khoản của bạn đã bị khóa vì lý do {user.PenaltyReason} và sẽ được mở khóa vào {user.PenaltyExpiredTime?.ToString("hh:mm:ss dd/MM/yyyy")}";
+                        return RedirectToAction("Login");
+                    }
+                }
+
                 await CookieAuthHelper.SignInUserAsync(
                     HttpContext,
                     user.Id,
@@ -223,6 +308,32 @@ namespace Assignment.Controllers
                     user.DiscordId = discordId;
                     user.UpdatedAt = DateTime.Now;
                     await _context.SaveChangesAsync();
+                }
+
+                if (user.PenaltyIsBanned)
+                {
+                    if (user.PenaltyExpiredTime != null && user.PenaltyExpiredTime < DateTime.Now)
+                    {
+                        user.PenaltyIsBanned = false;
+                        user.PenaltyStartTime = null;
+                        user.PenaltyReason = null;
+                        user.PenaltyExpiredTime = null;
+                        _context.Users.Update(user);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        if (user.PenaltyIsLifeTime)
+                        {
+                            TempData["message"] =
+                                $"Tài khoản của bạn đã bị khóa vĩnh viễn vì lý do {user.PenaltyReason}";
+                            return RedirectToAction("Login");
+                        }
+
+                        TempData["message"] =
+                            $"Tài khoản của bạn đã bị khóa vì lý do {user.PenaltyReason} và sẽ được mở khóa vào {user.PenaltyExpiredTime?.ToString("hh:mm:ss dd/MM/yyyy")}";
+                        return RedirectToAction("Login");
+                    }
                 }
 
                 await CookieAuthHelper.SignInUserAsync(
