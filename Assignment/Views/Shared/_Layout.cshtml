@@ -7,6 +7,7 @@
     @Html.Raw(ViewData["MetaTag"])
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
 <body>
@@ -15,98 +16,196 @@
     {
         <div id="verifyAccountAlert" style="display: none">
             <div class="alert alert-warning d-flex align-items-center justify-content-between">
-                Bạn chưa xác minh tài khoản! Vui lòng kiểm tra hộp thư @(Assignment.Utilities.CookieAuthHelper.GetEmail(User)) để xác minh tài khoản
+                <div>
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Bạn chưa xác minh tài khoản! Vui lòng kiểm tra hộp thư 
+                    <strong>@(Assignment.Utilities.CookieAuthHelper.GetEmail(User))</strong> để xác minh tài khoản
+                </div>
                 <div class="ms-auto">
-                    <a class="btn btn-success" target="_blank" href="https://mail.google.com/mail/u/@(Assignment.Utilities.CookieAuthHelper.GetEmail(User))/#search/from:no-reply@tank-food.io.vn">Xác minh ngay</a>
-                    <button class="btn btn-warning" onclick="verifyAccount('@(Assignment.Utilities.CookieAuthHelper.GetEmail(User))')">Gửi lại</button>
+                    <a class="btn btn-success btn-sm" target="_blank" 
+                       href="https://mail.google.com/mail/u/@(Assignment.Utilities.CookieAuthHelper.GetEmail(User))/#search/from:no-reply@tank-food.io.vn">
+                        <i class="bi bi-envelope-check me-1"></i>Xác minh ngay
+                    </a>
+                    <button class="btn btn-warning btn-sm ms-2" 
+                            onclick="verifyAccount('@(Assignment.Utilities.CookieAuthHelper.GetEmail(User))')">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Gửi lại
+                    </button>
                 </div>
             </div>
         </div>
     }
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow mb-3">
         <div class="container-fluid">
-            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">FastFood Express</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <i class="bi bi-shop me-2"></i>FastFood Express
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <!-- Trang chủ -->
+                    <li class="nav-item common-menu">
+                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house-door me-1"></i>Trang chủ
+                        </a>
                     </li>
+                    
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
+                        <!-- Admin Role Dropdown -->
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Index">Quản lý tài khoản</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Quản lý danh mục</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Product" asp-action="Index">Quản lý sản phẩm</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Voucher" asp-action="Index">Quản lý mã giảm giá</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Order" asp-action="Index">Quản lý đơn đặt hàng</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Redeem" asp-action="Index">Quản lý vật phẩm đổi thưởng</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Refund" asp-action="Index">Quản lý đơn hoàn tiền</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Statistical" asp-action="Index">Thống kê</a>
+                            <li class="nav-item dropdown admin-menu">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-gear-fill me-1"></i>Quản lý Admin
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li class="dropdown-header">
+                                        <i class="bi bi-people me-2"></i>Quản lý người dùng
+                                    </li>
+                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Index">
+                                        <i class="bi bi-people me-2"></i>Quản lý tài khoản
+                                    </a></li>
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header">
+                                        <i class="bi bi-box me-2"></i>Quản lý sản phẩm
+                                    </li>
+                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index">
+                                        <i class="bi bi-tags me-2"></i>Quản lý danh mục
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Product" asp-action="Index">
+                                        <i class="bi bi-box me-2"></i>Quản lý sản phẩm
+                                    </a></li>
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header">
+                                        <i class="bi bi-receipt me-2"></i>Quản lý đơn hàng
+                                    </li>
+                                    <li><a class="dropdown-item" asp-controller="Order" asp-action="Index">
+                                        <i class="bi bi-clipboard-check me-2"></i>Quản lý đơn đặt hàng
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Refund" asp-action="Index">
+                                        <i class="bi bi-arrow-return-left me-2"></i>Quản lý đơn hoàn tiền
+                                    </a></li>
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header">
+                                        <i class="bi bi-gift me-2"></i>Marketing & Khuyến mãi
+                                    </li>
+                                    <li><a class="dropdown-item" asp-controller="Voucher" asp-action="Index">
+                                        <i class="bi bi-ticket-perforated me-2"></i>Quản lý mã giảm giá
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Redeem" asp-action="Index">
+                                        <i class="bi bi-gift me-2"></i>Quản lý vật phẩm đổi thưởng
+                                    </a></li>
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-controller="Statistical" asp-action="Index">
+                                        <i class="bi bi-graph-up me-2"></i>Thống kê
+                                    </a></li>
+                                </ul>
                             </li>
                         }
 
+                        <!-- Shipper Role Dropdown -->
                         @if (User.IsInRole("Shipper") || User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Order" asp-action="Delivery">Quản lý giao hàng</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Order" asp-action="Recevied">Đơn hàng đã nhận</a>
+                            <li class="nav-item dropdown shipper-menu">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-truck me-1"></i>Giao hàng
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Order" asp-action="Delivery">
+                                        <i class="bi bi-geo-alt me-2"></i>Quản lý giao hàng
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Order" asp-action="Recevied">
+                                        <i class="bi bi-check-circle me-2"></i>Đơn hàng đã nhận
+                                    </a></li>
+                                </ul>
                             </li>
                         }
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Cart">Giỏ hàng <span class="badge rounded-pill bg-primary" id="cart-count">0</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Order" asp-action="PurchaseHistory">Lịch sử mua hàng</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Voucher" asp-action="MyVoucher">Mã giảm giá của tôi</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Redeem" asp-action="Conversion">Đổi thưởng</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Profile">Trang cá nhân</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="ChangeInformation">Thay đổi thông tin tài khoản</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="UserApi" asp-action="Logout">Đăng xuất</a>
+                        <!-- Customer Shopping Dropdown -->
+                        <li class="nav-item dropdown customer-menu">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-bag-heart me-1"></i>Mua sắm
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Cart">
+                                    <i class="bi bi-cart me-2"></i>Giỏ hàng 
+                                    <span class="badge rounded-pill bg-primary ms-1" id="cart-count">0</span>
+                                </a></li>
+                                <li><a class="dropdown-item" asp-controller="Order" asp-action="PurchaseHistory">
+                                    <i class="bi bi-clock-history me-2"></i>Lịch sử mua hàng
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Voucher" asp-action="MyVoucher">
+                                    <i class="bi bi-ticket me-2"></i>Mã giảm giá của tôi
+                                </a></li>
+                                <li><a class="dropdown-item" asp-controller="Redeem" asp-action="Conversion">
+                                    <i class="bi bi-trophy me-2"></i>Đổi thưởng
+                                </a></li>
+                            </ul>
                         </li>
                     }
                     else
                     {
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Cart">Giỏ hàng <span class="badge rounded-pill bg-primary" id="cart-count-2">0</span></a>
+                        <!-- Guest Cart -->
+                        <li class="nav-item guest-menu">
+                            <a class="nav-link" asp-controller="Home" asp-action="Cart">
+                                <i class="bi bi-cart me-1"></i>Giỏ hàng 
+                                <span class="badge rounded-pill bg-primary ms-1" id="cart-count-2">0</span>
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Login">Đăng nhập</a>
+                    }
+                </ul>
+                
+                <!-- Right side menu - User Account -->
+                <ul class="navbar-nav">
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item dropdown user-account-menu">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-1"></i>Tài khoản
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li class="dropdown-header">
+                                    <i class="bi bi-person me-2"></i>Thông tin cá nhân
+                                </li>
+                                <li><a class="dropdown-item" asp-controller="User" asp-action="Profile">
+                                    <i class="bi bi-person me-2"></i>Trang cá nhân
+                                </a></li>
+                                <li><a class="dropdown-item" asp-controller="User" asp-action="ChangeInformation">
+                                    <i class="bi bi-pencil-square me-2"></i>Thay đổi thông tin tài khoản
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" asp-controller="UserApi" asp-action="Logout">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                                </a></li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Register">Đăng ký</a>
+                    }
+                    else
+                    {
+                        <!-- Guest Authentication -->
+                        <li class="nav-item dropdown guest-menu">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person me-1"></i>Tài khoản
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-controller="User" asp-action="Login">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                                </a></li>
+                                <li><a class="dropdown-item" asp-controller="User" asp-action="Register">
+                                    <i class="bi bi-person-plus me-2"></i>Đăng ký
+                                </a></li>
+                            </ul>
                         </li>
                     }
                 </ul>
@@ -114,25 +213,22 @@
         </div>
     </nav>
 </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-@* <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - KShop
-        </div>
-    </footer> *@
-    <script src="~/js/cartcount.js"></script>
-    <script src="https://kit.fontawesome.com/476445fe42.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/verifyaccount.js"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+<div class="container">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
+
+<!-- Scripts -->
+<script src="~/js/cartcount.js"></script>
+<script src="https://kit.fontawesome.com/476445fe42.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script src="~/js/verifyaccount.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

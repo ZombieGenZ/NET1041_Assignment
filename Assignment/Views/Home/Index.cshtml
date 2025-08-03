@@ -3,13 +3,13 @@
     ViewData["Title"] = "Trang chủ";
 }
 <div>
-    <h1 class="text-center">Sản phẩm của chúng tôi</h1>
+    <h1 class="text-center page-title">Sản phẩm của chúng tôi</h1>
 
-    <div class="row mt-3 mb-3">
+    <div class="row mt-3 mb-3 search-container">
         <div class="col-md-6 offset-md-3">
-            <div class="input-group">
-                <input type="text" class="form-control" value="@Model.Text" id="search" placeholder="Tìm kiếm...">
-                <button class="btn btn-primary" onclick="search()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <div class="input-group search-input-group">
+                <input type="text" class="form-control" value="@Model.Text" id="search" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn search-btn" onclick="search()"><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
         </div>
     </div>
@@ -18,32 +18,28 @@
         @if (!string.IsNullOrWhiteSpace(Model.Text))
         {
             <div class="col-md-3">
-                <div class="card">
+                <div class="card filter-card">
                     <div class="card-header">
                         <h5 class="mb-0">
                             <i class="fa-solid fa-filter"></i> Tìm kiếm nâng cao
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Khoảng giá</label>
-                            <div class="row">
-                                <div class="col-6">
-                                    <input type="number" class="form-control form-control-sm" id="min"
-                                           placeholder="Từ" value="@Model.Min" min="0">
-                                </div>
-                                <div class="col-6">
-                                    <input type="number" class="form-control form-control-sm" id="max"
-                                           placeholder="Đến" value="@Model.Max" min="0">
-                                </div>
+                        <div class="filter-section">
+                            <label class="filter-label">Khoảng giá</label>
+                            <div class="price-inputs">
+                                <input type="number" class="form-control filter-input" id="min"
+                                       placeholder="Từ" value="@Model.Min" min="0">
+                                <input type="number" class="form-control filter-input" id="max"
+                                       placeholder="Đến" value="@Model.Max" min="0">
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">
+                        <div class="filter-section">
+                            <label class="filter-label">
                                 <i class="fa-solid fa-dollar-sign"></i> Sắp xếp theo giá
                             </label>
-                            <select class="form-select form-select-sm" id="priceSort">
+                            <select class="form-select filter-select" id="priceSort">
                                 <option value="">Không sắp xếp</option>
                                 @if (Model.PriceSort == "asc")
                                 {
@@ -53,7 +49,7 @@
                                 {
                                     <option value="asc">Giá tăng dần</option>
                                 }
-    )                           @if (Model.PriceSort == "desc")
+                                @if (Model.PriceSort == "desc")
                                 {
                                     <option value="desc" selected>Giá giảm dần</option>
                                 }
@@ -64,11 +60,11 @@
                             </select>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">
+                        <div class="filter-section">
+                            <label class="filter-label">
                                 <i class="fa-solid fa-star"></i> Sắp xếp theo đánh giá
                             </label>
-                            <select class="form-select form-select-sm" id="ratingSort">
+                            <select class="form-select filter-select" id="ratingSort">
                                 <option value="">Không sắp xếp</option>
                                 @if (Model.RatingSort == "asc")
                                 {
@@ -89,11 +85,11 @@
                             </select>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">
+                        <div class="filter-section">
+                            <label class="filter-label">
                                 <i class="fa-solid fa-chart-line"></i> Sắp xếp theo lượt bán
                             </label>
-                            <select class="form-select form-select-sm" id="salesSort">
+                            <select class="form-select filter-select" id="salesSort">
                                 <option value="">Không sắp xếp</option>
                                 @if (Model.SalesSort == "asc")
                                 {
@@ -115,7 +111,7 @@
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="resetSearch()">
+                            <button class="btn reset-btn" onclick="resetSearch()">
                                 <i class="fa-solid fa-rotate-left"></i> Đặt lại
                             </button>
                         </div>
@@ -129,34 +125,41 @@
             {
                 @foreach (var categoryGroup in Model.Data)
                 {
-                    <h2 class="mt-4 mb-3">@categoryGroup.Key.Name</h2>
-                    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-@(!string.IsNullOrWhiteSpace(Model.Text) ? "4" : "6") g-2">
+                    <h2 class="category-title">@categoryGroup.Key.Name</h2>
+                    <div class="row product-grid row-cols-1 row-cols-md-3 row-cols-lg-@(!string.IsNullOrWhiteSpace(Model.Text) ? "4" : "6") g-2">
                         @foreach (var item in categoryGroup.Value)
                         {
                             <div class="col">
-                                <a href="/products/@item.Path" class="text-decoration-none">
-                                    <img class="img-fluid" src="@item.ProductImageUrl" alt="@item.Name" />
-                                    <p class="h3 text-black">@item.Name</p>
-                                    <p class="text-black mb-0">
-                                        @if (item.Discount > 0)
-                                        {
-                                            <span class="badge bg-danger">@item.Discount%</span>
-                                            <span>@((item.Price - (item.Price * item.Discount / 100)).ToString("C0"))</span>
-                                            <del class="text-secondary">@item.Price.ToString("C0")</del>
-                                        }
-                                        else
-                                        {
-                                            @item.Price.ToString("C0")
-                                        }
-                                    </p>
-                                    <p class="mb-1">
-                                        <span class="text-black">
-                                            @item.AverageEvaluate <i class="fa-solid fa-star text-warning"></i>
-                                            @item.TotalEvaluate.ToString("N0") lượt đánh giá
-                                        </span>
-                                    </p>
-                                </a>
-                                <button class="btn btn-warning w-100" onclick="addToCart(@item.Id)">Thêm vào giỏ hàng</button>
+                                <div class="product-card">
+                                    <a href="/products/@item.Path" class="product-link">
+                                        <img class="product-image" src="@item.ProductImageUrl" alt="@item.Name" />
+                                        <div class="product-info">
+                                            <h3 class="product-name">@item.Name</h3>
+                                            <div class="product-price">
+                                                @if (item.Discount > 0)
+                                                {
+                                                    <span class="discount-badge">@item.Discount%</span>
+                                                    <span class="current-price">@((item.Price - (item.Price * item.Discount / 100)).ToString("C0"))</span>
+                                                    <del class="original-price">@item.Price.ToString("C0")</del>
+                                                }
+                                                else
+                                                {
+                                                    <span class="current-price">@item.Price.ToString("C0")</span>
+                                                }
+                                            </div>
+                                            <div class="product-rating">
+                                                <span class="rating-number">@item.AverageEvaluate</span>
+                                                <i class="fa-solid fa-star rating-star"></i>
+                                                <span>@item.TotalEvaluate.ToString("N0") lượt đánh giá</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <div class="p-3 pt-0">
+                                        <button class="btn add-to-cart-btn w-100" onclick="addToCart(@item.Id)">
+                                            <i class="fa-solid fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         }
                     </div>
@@ -165,12 +168,18 @@
             else
             {
                 <div class="col">
-                    <p class="text-center">Không có sản phẩm nào phù hợp</p>
+                    <div class="no-products">
+                        <div class="no-products-icon">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <p class="no-products-text">Không có sản phẩm nào phù hợp</p>
+                    </div>
                 </div>
             }
-        </div>
+        </div>     
     </div>
 </div>
 
+<link rel="stylesheet" href="~/css/Home-index.css" asp-append-version="true" />
 <script src="~/js/search.js"></script>
 <script src="~/js/addcarthome.js"></script>
