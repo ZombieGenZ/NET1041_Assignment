@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Assignment.Enum;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Assignment.Controllers
 {
@@ -12,6 +13,9 @@ namespace Assignment.Controllers
         {
             _context = context;
         }
+        [HttpGet]
+        [Route("statistical")]
+        [Authorize(Policy = "AdminPolicy")]
         public IActionResult Index(string period = "month", string chartPeriod = "month", string categoryPeriod = "month", string productsPeriod = "month", string customersPeriod = "month")
         {
             var model = new StatisticalModel();
@@ -181,7 +185,7 @@ namespace Assignment.Controllers
                 model.TopCustomers = topCustomers;
 
             }
-            catch (Exception ex)
+            catch
             {
                 model = new StatisticalModel
                 {
@@ -204,6 +208,7 @@ namespace Assignment.Controllers
             return View(model);
         }
 
+        [NonAction]
         private (DateTime startDate, DateTime endDate) GetDateRange(string periodType)
         {
             var now = DateTime.Now;
@@ -238,6 +243,7 @@ namespace Assignment.Controllers
             return (startDate, endDate);
         }
 
+        [NonAction]
         private string GetDayOfWeekVietnamese(DayOfWeek dayOfWeek)
         {
             return dayOfWeek switch
@@ -253,6 +259,7 @@ namespace Assignment.Controllers
             };
         }
 
+        [NonAction]
         private string GetCustomerTypeVietnamese(UserRankEnum rank)
         {
             return rank switch
@@ -266,6 +273,7 @@ namespace Assignment.Controllers
             };
         }
 
+        [NonAction]
         private List<(DateTime start, DateTime end)> GetWeeksInMonth(DateTime month)
         {
             var weeks = new List<(DateTime start, DateTime end)>();

@@ -16,6 +16,7 @@ namespace Assignment.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public IActionResult Index([FromQuery] string? text, [FromQuery] double? min, [FromQuery] double? max,
                           [FromQuery] string? priceSort, [FromQuery] string? ratingSort,
                           [FromQuery] string? salesSort)
