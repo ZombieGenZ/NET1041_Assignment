@@ -47,6 +47,29 @@
                         <small class="text-muted">Giá quy đổi:</small><br>
                         <small><b>@redeem.Price.ToString("N0")</b> điểm</small>
                     </div>
+                    <div class="col-12">
+                        <small class="text-muted">Yêu cần hạng:</small><br>
+                        @if (@redeem.RankRequirement == UserRankEnum.Copper)
+                        {
+                            <small><b>Hạng đồng trở lên</b></small>
+                        }
+                        else if (@redeem.RankRequirement == UserRankEnum.Silver)
+                        {
+                            <small><b>Hạng bạc trở lên</b></small>
+                        }
+                        else if (@redeem.RankRequirement == UserRankEnum.Gold)
+                        {
+                            <small><b>Hạng vàng trở lên</b></small>
+                        }
+                        else if (@redeem.RankRequirement == UserRankEnum.Diamond)
+                        {
+                            <small><b>Hạng kim cương</b></small>
+                        }
+                        else
+                        {
+                            <small><b>Không yêu cầu</b></small>
+                        }
+                    </div>
                 </div>
                 
                 <div class="card-footer mt-2">
