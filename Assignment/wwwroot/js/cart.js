@@ -129,7 +129,7 @@ function LoadData() {
                         }" onclick="checkItem()"></td>
                             <td><a href="/products/${
                               item.path
-                            }" class="text-decoration-none text-black" target="_blank">${
+                            }" class="text-decoration-none text-white" target="_blank">${
             item.name
           }</a></td>
                             <td>${

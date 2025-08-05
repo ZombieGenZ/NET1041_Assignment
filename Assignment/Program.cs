@@ -45,12 +45,6 @@ builder.Services.AddAuthentication(options =>
     {
         await Task.CompletedTask;
     };
-    options.Events.OnRemoteFailure = (context) =>
-    {
-        context.Response.Redirect("/login");
-        context.HandleResponse();
-        return Task.CompletedTask;
-    };
     options.CallbackPath = "/signin-google";
 })
 .AddFacebook(options =>
@@ -64,12 +58,6 @@ builder.Services.AddAuthentication(options =>
     {
         await Task.CompletedTask;
     };
-    options.Events.OnRemoteFailure = (context) =>
-    {
-        context.Response.Redirect("/login");
-        context.HandleResponse();
-        return Task.CompletedTask;
-    };
     options.CallbackPath = "/signin-facebook";
 })
 .AddGitHub(options =>
@@ -81,12 +69,6 @@ builder.Services.AddAuthentication(options =>
     options.Events.OnCreatingTicket = async context =>
     {
         await Task.CompletedTask;
-    };
-    options.Events.OnRemoteFailure = (context) =>
-    {
-        context.Response.Redirect("/login");
-        context.HandleResponse();
-        return Task.CompletedTask;
     };
     options.CallbackPath = "/signin-github";
 })
@@ -100,12 +82,6 @@ builder.Services.AddAuthentication(options =>
     options.Events.OnCreatingTicket = async context =>
     {
         await Task.CompletedTask;
-    };
-    options.Events.OnRemoteFailure = (context) =>
-    {
-        context.Response.Redirect("/login");
-        context.HandleResponse();
-        return Task.CompletedTask;
     };
     options.CallbackPath = "/signin-discord";
 })

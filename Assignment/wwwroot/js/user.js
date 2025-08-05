@@ -57,7 +57,7 @@ function LoadData(search) {
                             )}</td>
                             <td>${convertNumberToVietnameseWord(item.rank)}</td>
                             <td>${getRankHtml(item.top)}</td>
-                            <td>${GetRoleName(item.role)}</td>
+                            <td>${convertNumberToVietnameseRole(item.role)}</td>
                             <td class="text-end button-cell">
                               ${
                                 item.penaltyIsBanned
@@ -259,12 +259,12 @@ function convertNumberToVietnameseWord(number) {
   }
 }
 
-function GetRoleName(role) {
+function convertNumberToVietnameseRole(role) {
   switch (role) {
-    case "Shipper":
-        return "<span class='text-warning'>Người giao hàng</span>";
-    case "Admin":
-        return "<span class='text-danger'>Quản trị viên</span>";
+    case 1:
+      return "Người giao hàng";
+    case 2:
+      return "Quản trị viên";
     default:
       return "Khách hàng";
   }
