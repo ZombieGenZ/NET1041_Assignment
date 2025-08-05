@@ -110,3 +110,34 @@ function showErrorToast(message, duration = 7000) {
         close: true,
     }).showToast();
 }
+
+// Thêm vào cuối file addcarthome.js hoặc trong <script>
+document.addEventListener('click', function(e) {
+    const button = e.target.closest('.add-to-cart-btn');
+    if (!button) return;
+    
+    // Prevent spam
+    if (button.classList.contains('loading')) {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Start loading
+    button.classList.add('loading');
+    const btnText = button.querySelector('.btn-text') || button;
+    const originalHTML = btnText.innerHTML;
+    
+    btnText.innerHTML = '<span class="cart-spinner"></span>Đang thêm...';
+    
+    // Simulate your API call here
+    setTimeout(() => {
+        button.classList.remove('loading');
+        button.classList.add('success');
+        btnText.innerHTML = '<i class="fa-solid fa-check me-2"></i>Đã thêm!';
+        
+        setTimeout(() => {
+            button.classList.remove('success');
+            btnText.innerHTML = originalHTML;
+        }, 2000);
+    }, 1500);
+});

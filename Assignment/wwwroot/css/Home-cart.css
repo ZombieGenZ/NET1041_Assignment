@@ -220,10 +220,195 @@ body {
         box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
     }
 
+/* Payment Button Loading States */
+.btn-payment-loading {
+    position: relative;
+    pointer-events: none;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #1a4d3a 0%, #2d7a4f 100%) !important;
+    opacity: 0.8;
+    transform: none !important;
+}
+
+    .btn-payment-loading::before {
+        display: none;
+    }
+
+    .btn-payment-loading:hover {
+        transform: none !important;
+        box-shadow: 0 8px 25px rgba(46, 213, 115, 0.2) !important;
+    }
+
+    .btn-payment-loading .btn-text {
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
+    }
+
+/* Luxury Loading Spinner */
+.luxury-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    position: relative;
+    vertical-align: middle;
+}
+
+    .luxury-spinner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 3px solid transparent;
+        border-top-color: var(--text-gold);
+        border-right-color: var(--text-gold);
+        border-radius: 50%;
+        animation: luxurySpinnerRotate 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .luxury-spinner::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: calc(100% - 6px);
+        height: calc(100% - 6px);
+        border: 2px solid transparent;
+        border-top-color: rgba(255, 215, 0, 0.6);
+        border-radius: 50%;
+        animation: luxurySpinnerRotate 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse;
+    }
+
+@keyframes luxurySpinnerRotate {
+    0% {
+        transform: rotate(0deg);
+        opacity: 1;
+    }
+
+    50% {
+        transform: rotate(180deg);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: rotate(360deg);
+        opacity: 1;
+    }
+}
+
+/* Payment Button Shimmer Effect While Loading */
+.btn-payment-loading {
+    background: linear-gradient(135deg, #1a4d3a 0%, #2d7a4f 50%, #1a4d3a 100%) !important;
+    background-size: 200% 100%;
+    animation: paymentShimmer 2s ease-in-out infinite;
+}
+
+@keyframes paymentShimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Loading Pulse Effect */
+.btn-payment-loading .luxury-spinner {
+    animation: luxuryPulseGlow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes luxuryPulseGlow {
+    0% {
+        filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.4));
+        transform: scale(1);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+        transform: scale(1.1);
+    }
+}
+
+/* Loading Text Animation */
+.loading-text {
+    display: inline-block;
+    animation: loadingTextFade 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingTextFade {
+    0%, 100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Payment Processing State */
+.btn-processing {
+    background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%) !important;
+    animation: processingPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes processingPulse {
+    0% {
+        box-shadow: 0 8px 25px rgba(230, 126, 34, 0.3);
+        transform: scale(1);
+    }
+
+    100% {
+        box-shadow: 0 12px 35px rgba(230, 126, 34, 0.5);
+        transform: scale(1.02);
+    }
+}
+
+/* Success State */
+.btn-payment-success {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%) !important;
+    animation: successBounce 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes successBounce {
+    0% {
+        transform: scale(0.8);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Error State */
+.btn-payment-error {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
 /* Modal Styling */
-
-#paymentModal{
-
+#paymentModal {
 }
 
 .modal-content {
@@ -511,6 +696,12 @@ body {
     .btn {
         padding: 0.8rem 1.5rem;
         font-size: 0.8rem;
+    }
+
+    .luxury-spinner {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
     }
 }
 

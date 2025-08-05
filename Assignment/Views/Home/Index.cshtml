@@ -155,8 +155,10 @@
                                         </div>
                                     </a>
                                     <div class="p-3 pt-0">
-                                        <button class="btn add-to-cart-btn w-100" onclick="addToCart(@item.Id)">
-                                            <i class="fa-solid fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                                        <button class="btn add-to-cart-btn w-100" onclick="addToCart(@item.Id, this)">
+                                            <span class="btn-text">
+                                                <i class="fa-solid fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                                            </span>
                                         </button>
                                     </div>
                                 </div>

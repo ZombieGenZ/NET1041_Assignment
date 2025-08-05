@@ -1158,3 +1158,30 @@ function showErrorToast(message, duration = 7000) {
     close: true,
   }).showToast();
 }
+
+document.getElementById('buyBtn').addEventListener('click', function () {
+    const btn = this;
+    const spinner = btn.querySelector('.luxury-spinner');
+    const btnText = btn.querySelector('.btn-text');
+
+    // Bắt đầu loading
+    btn.classList.add('btn-payment-loading');
+    spinner.style.display = 'inline-block';
+    btnText.innerHTML = '<span class="loading-text">Đang xử lý...</span>';
+
+    // Simulate API call (thay bằng logic thanh toán thực tế của bạn)
+    setTimeout(() => {
+        // Kết thúc loading - thành công
+        btn.classList.remove('btn-payment-loading');
+        btn.classList.add('btn-payment-success');
+        spinner.style.display = 'none';
+        btnText.innerHTML = 'Thành công!';
+
+        // Reset sau 2 giây
+        setTimeout(() => {
+            btn.classList.remove('btn-payment-success');
+            btnText.innerHTML = 'Thanh toán';
+        }, 2000);
+
+    }, 3000);
+});

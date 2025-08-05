@@ -569,3 +569,44 @@ function showErrorToast(message, duration = 7000) {
     close: true,
   }).showToast();
 }
+
+function buyNow(buttonElement) {
+    // Kiểm tra nếu đang loading
+    if (buttonElement && buttonElement.classList.contains('loading')) {
+        return;
+    }
+
+    // Tìm button nếu không được truyền vào
+    if (!buttonElement) {
+        buttonElement = document.querySelector('#buyModal .btn-success');
+    }
+
+    // Bắt đầu loading
+    const btnText = buttonElement.querySelector('.btn-text');
+    const originalContent = btnText.innerHTML;
+
+    buttonElement.classList.add('loading');
+    btnText.innerHTML = '<span class="luxury-spinner"></span><span class="loading-text">Đang xử lý...</span>';
+
+    // Logic thanh toán hiện tại của bạn ở đây
+    // Thay thế phần này bằng code hiện tại
+
+    // Giả lập API call
+    setTimeout(() => {
+        // Thành công - chuyển sang payment modal
+        buttonElement.classList.remove('loading');
+        buttonElement.classList.add('success');
+        btnText.innerHTML = '<i class="fas fa-check me-1"></i>Thành công!';
+
+        // Ẩn modal buy và hiện modal payment
+        setTimeout(() => {
+            $('#buyModal').modal('hide');
+            $('#paymentModal').modal('show');
+
+            // Reset button
+            buttonElement.classList.remove('success');
+            btnText.innerHTML = originalContent;
+        }, 1000);
+
+    }, 2000); // 2 giây loading demo
+}
