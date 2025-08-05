@@ -58,9 +58,6 @@ namespace Assignment.Models
         [Range(0, 5)]
         public double AverageEvaluate { get; set; } = 0;
         [Required]
-        [DefaultValue("")]
-        public string MetaTag { get; set; } = "";
-        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;

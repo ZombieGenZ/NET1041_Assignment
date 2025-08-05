@@ -166,23 +166,6 @@ namespace Assignment.Controllers
                     });
                 }
 
-                MetaTagGenerator generator = new MetaTagGenerator
-                {
-                    Name = product.Name,
-                    Description = product.Description,
-                    Price = product.Price,
-                    Discount = product.Discount,
-                    PreparationTime = product.PreparationTime,
-                    Calories = product.Calories,
-                    Ingredients = product.Ingredients,
-                    IsSpicy = product.IsSpicy,
-                    IsVegetarian = product.IsVegetarian,
-                    CategoryName = existCategory.Name,
-                    CategoryDescription = existCategory.Description
-                };
-
-                string meta = await _geminiApiClient.GenerateContentAsync(generator.ToString());
-
                 Products newProduct = new Products
                 {
                     Name = product.Name,
@@ -200,7 +183,6 @@ namespace Assignment.Controllers
                     Ingredients = product.Ingredients,
                     IsSpicy = product.IsSpicy,
                     IsVegetarian = product.IsVegetarian,
-                    MetaTag = meta.Replace("```html", "").Replace("```", "")
                 };
                 _context.Products.Add(newProduct);
                 await _context.SaveChangesAsync();
@@ -352,23 +334,6 @@ namespace Assignment.Controllers
                     existingProduct.ProductImageUrl = file.FileUrl;
                 }
 
-                MetaTagGenerator generator = new MetaTagGenerator
-                {
-                    Name = product.Name,
-                    Description = product.Description,
-                    Price = product.Price,
-                    Discount = product.Discount,
-                    PreparationTime = product.PreparationTime,
-                    Calories = product.Calories,
-                    Ingredients = product.Ingredients,
-                    IsSpicy = product.IsSpicy,
-                    IsVegetarian = product.IsVegetarian,
-                    CategoryName = existCategory.Name,
-                    CategoryDescription = existCategory.Description
-                };
-
-                string meta = await _geminiApiClient.GenerateContentAsync(generator.ToString());
-
                 existingProduct.Name = product.Name;
                 existingProduct.Description = product.Description;
                 existingProduct.Path = UrlGenerator.GenerateUrl(_context, product.Name, existingProduct.Path);
@@ -382,7 +347,6 @@ namespace Assignment.Controllers
                 existingProduct.IsSpicy = product.IsSpicy;
                 existingProduct.IsVegetarian = product.IsVegetarian;
                 existingProduct.CategoryId = product.CategoryId;
-                existingProduct.MetaTag = meta.Replace("```html", "").Replace("```", "");
                 existingProduct.UpdatedAt = DateTime.Now;
                 _context.Products.Update(existingProduct);
                 await _context.SaveChangesAsync();

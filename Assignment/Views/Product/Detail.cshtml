@@ -14,7 +14,6 @@
 
 @{
     ViewData["Title"] = Model.Name;
-    ViewData["MetaTag"] = Model.MetaTag;
 
     long? currentUserId = null;
     var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

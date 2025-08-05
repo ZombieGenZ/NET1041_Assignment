@@ -255,19 +255,19 @@ function convertNumberToVietnameseWord(number) {
     case 4:
       return "Kim cương";
     default:
-      return "Không cần";
+      return "Khách hàng tìm năng";
   }
 }
 
 function convertNumberToVietnameseRole(role) {
-  switch (role) {
-    case 1:
-      return "Người giao hàng";
-    case 2:
-      return "Quản trị viên";
+    switch (role) {
+    case "Shipper":
+        return "<span class='text-warning'>Người giao hàng</span>";
+    case "Admin":
+        return "<span class='text-danger'>Quản trị viên</span>";
     default:
-      return "Khách hàng";
-  }
+        return "Khách hàng";
+    }
 }
 
 function getRankHtml(rank) {
