@@ -714,7 +714,7 @@ function update() {
       Quantity: Number(quantity),
       StartTime: new Date(startTime),
       IsLifeTime: isLifeTime,
-      EndTime: endTisLifeTimeime ? null : new Date(endTime),
+        EndTime: isLifeTime ? null : new Date(endTime),
       MinimumRequirements: Number(minimumRequirements),
       UnlimitedPercentageDiscount: unlimitedPercentageDiscount,
       MaximumPercentageReduction: Number(maximumPercentageReduction),
