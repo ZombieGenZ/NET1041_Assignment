@@ -128,152 +128,181 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-function buyNow() {
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
-  const phone = document.getElementById("phone").value;
-  const quantity = document.getElementById("productQuantity").value;
-  const voucher = document.getElementById("voucher").value;
+function buyNow(buttonElement) {
+    // Kiểm tra nếu đang loading
+    if (buttonElement && buttonElement.classList.contains('loading')) {
+        return;
+    }
 
-  if (!name || !phone || !quantity) {
-    let errMsg = [];
-    if (!name) errMsg.push("tên người nhận");
-    if (!phone) errMsg.push("số điện thoại người nhận");
-    showWarningToast(`Vui lòng điền đầy đủ ${errMsg.join(", ")}`, 4000);
-    return;
-  }
+    // Tìm button nếu không được truyền vào
+    if (!buttonElement) {
+        buttonElement = document.querySelector('#buyModal .btn-success');
+    }
 
-  if (email && !isValidEmail(email)) {
-    showWarningToast(`Địa chỉ email người nhận không hợp lệ`, 4000);
-    return;
-  }
+    // Lấy dữ liệu từ form
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const quantity = document.getElementById("productQuantity").value;
+    const voucher = document.getElementById("voucher").value;
 
-  if (!isSimpleVietnamesePhoneNumber(phone)) {
-    showWarningToast(`Số điện thoại người nhận không hợp lệ`, 4000);
-    return;
-  }
+    // Validation trước khi bắt đầu loading
+    if (!name || !phone || !quantity) {
+        let errMsg = [];
+        if (!name) errMsg.push("tên người nhận");
+        if (!phone) errMsg.push("số điện thoại người nhận");
+        showWarningToast(`Vui lòng điền đầy đủ ${errMsg.join(", ")}`, 4000);
+        return;
+    }
 
-  if (isNaN(quantity) || quantity < 1) {
-    showWarningToast(`Số lượng sản phẩm không hợp lệ`, 4000);
-    return;
-  }
+    if (email && !isValidEmail(email)) {
+        showWarningToast(`Địa chỉ email người nhận không hợp lệ`, 4000);
+        return;
+    }
 
-  if (!isValidLongitude(selectedLng) || !isValidLatitude(selectedLat)) {
-    showWarningToast(`Vị trí nhận hàng không hợp lệ`, 4000);
-    return;
-  }
+    if (!isSimpleVietnamesePhoneNumber(phone)) {
+        showWarningToast(`Số điện thoại người nhận không hợp lệ`, 4000);
+        return;
+    }
 
-  fetch(`/api/orders`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      Name: name,
-      Email: email ? email : null,
-      Phone: phone,
-      Items: [
-        {
-          ProductId: selectedId,
-          Quantity: Number(quantity),
+    if (isNaN(quantity) || quantity < 1) {
+        showWarningToast(`Số lượng sản phẩm không hợp lệ`, 4000);
+        return;
+    }
+
+    if (!isValidLongitude(selectedLng) || !isValidLatitude(selectedLat)) {
+        showWarningToast(`Vị trí nhận hàng không hợp lệ`, 4000);
+        return;
+    }
+
+    // Bắt đầu loading sau khi validation thành công
+    const btnText = buttonElement.querySelector('.btn-text');
+    const originalContent = btnText.innerHTML;
+    buttonElement.classList.add('loading');
+    btnText.innerHTML = '<span class="luxury-spinner"></span><span class="loading-text">Đang xử lý...</span>';
+
+    // Gọi API
+    fetch(`/api/orders`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
         },
-      ],
-      Longitude: Number(getSelectedLocation()?.lng),
-      Latitude: Number(getSelectedLocation()?.lat),
-      Voucher: voucher ? voucher : null,
-    }),
-  })
-    .then((response) => {
-      if (response.status === 422 || response.status === 401) {
-        return response.json();
-      }
-
-      if (!response.ok) {
-        return showErrorToast("Lỗi khi mua hàng. Vui lòng thử lại sau.", 4000);
-      }
-
-      return response.json();
+        body: JSON.stringify({
+            Name: name,
+            Email: email ? email : null,
+            Phone: phone,
+            Items: [
+                {
+                    ProductId: selectedId,
+                    Quantity: Number(quantity),
+                },
+            ],
+            Longitude: Number(getSelectedLocation()?.lng),
+            Latitude: Number(getSelectedLocation()?.lat),
+            Voucher: voucher ? voucher : null,
+        }),
     })
-    .then((data) => {
-      if (data.code === "INPUT_DATA_ERROR") {
-        showWarningToast(data.message, 4000);
-        return;
-      }
+        .then((response) => {
+            if (response.status === 422 || response.status === 401) {
+                return response.json();
+            }
 
-      if (data.code === "ORDER_SUCCESS") {
-        showSuccessToast(data.message, 4000);
-        const buyModal = document.getElementById("buyModal");
-        const modal = bootstrap.Modal.getInstance(buyModal);
-        if (modal) {
-          modal.hide();
-        } else {
-          new bootstrap.Modal(createModal).hide();
-        }
-        document.getElementById(
-          "paymentQrCode"
-        ).src = `https://qr.sepay.vn/img?acc=${data.accountNo}&bank=${data.bankId}&amount=${data.totalBill}&des=${data.orderId}&template=compact`;
-        document.getElementById("bank").textContent = data.bankId;
-        document.getElementById("account_name").textContent = data.accountName;
-        document.getElementById("account_no").textContent = data.accountNo;
-        document.getElementById(
-          "bill"
-        ).textContent = `${data.totalBill.toLocaleString("vi-VN")} ₫`;
-        document.getElementById("orderId").textContent = data.orderId;
-        document.getElementById("orderId2").textContent = data.orderId;
-        document.getElementById(
-          "totalPrice"
-        ).textContent = `${data.totalPrice.toLocaleString("vi-VN")}₫`;
-        if (data.discount > 0) {
-          document.getElementById(
-            "discount"
-          ).innerHTML = `<p>Giảm giá <span class="float-end text-danger">-${data.discount.toLocaleString(
-            "vi-VN"
-          )}₫</span></p>`;
-        }
-        document.getElementById(
-          "totalBill"
-        ).textContent = `${data.totalBill.toLocaleString("vi-VN")}₫`;
-        document.getElementById("fee").textContent = `${data.fee.toLocaleString(
-          "vi-VN"
-        )}₫`;
-        document.getElementById("vat").textContent = `${data.vat.toLocaleString(
-          "vi-VN"
-        )}₫`;
-        let listProduct = ``;
-        for (const item of data.productList) {
-          listProduct += `<li class="list-group-item">${
-            item.name
-          } <span class="float-end">${
-            item.discount > 0
-              ? `<span>${(
-                  item.quantity *
-                  (item.price - (item.price / 100) * item.discount)
-                ).toLocaleString(
-                  "vi-VN"
-                )} ₫</span> <del class="fs-6 text-secondary">${(
-                  item.quantity * item.price
-                ).toLocaleString("vi-VN")} ₫</del>`
-              : `${(item.quantity * item.price).toLocaleString("vi-VN")} ₫`
-          }</span></li>`;
-        }
-          document.getElementById("listProduct").innerHTML = listProduct;
-          document.getElementById("status_payment").innerHTML = `
-                                    <div class="status-section">
-                                        Trạng thái: Chờ thanh toán...
-                                        <div id="status" class="spinner-border spinner-border-sm text-secondary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </div>
-                                   
-          `;
-          orderId = data.orderId;
-          connectPaymentRealtime();
-        document.getElementById("paymentModelBtn").click();
-        return;
-      } else {
-        showErrorToast(data.message, 4000);
-      }
-    });
+            if (!response.ok) {
+                // Reset button khi có lỗi
+                resetButton();
+                return showErrorToast("Lỗi khi mua hàng. Vui lòng thử lại sau.", 4000);
+            }
+
+            return response.json();
+        })
+        .then((data) => {
+            if (data.code === "INPUT_DATA_ERROR") {
+                resetButton();
+                showWarningToast(data.message, 4000);
+                return;
+            }
+
+            if (data.code === "ORDER_SUCCESS") {
+                // Hiển thị trạng thái thành công
+                buttonElement.classList.remove('loading');
+                buttonElement.classList.add('success');
+                btnText.innerHTML = '<i class="fas fa-check me-1"></i>Thành công!';
+
+                showSuccessToast(data.message, 4000);
+
+                // Cập nhật thông tin thanh toán
+                document.getElementById("paymentQrCode").src = `https://qr.sepay.vn/img?acc=${data.accountNo}&bank=${data.bankId}&amount=${data.totalBill}&des=${data.orderId}&template=compact`;
+                document.getElementById("bank").textContent = data.bankId;
+                document.getElementById("account_name").textContent = data.accountName;
+                document.getElementById("account_no").textContent = data.accountNo;
+                document.getElementById("bill").textContent = `${data.totalBill.toLocaleString("vi-VN")} ₫`;
+                document.getElementById("orderId").textContent = data.orderId;
+                document.getElementById("orderId2").textContent = data.orderId;
+                document.getElementById("totalPrice").textContent = `${data.totalPrice.toLocaleString("vi-VN")}₫`;
+
+                if (data.discount > 0) {
+                    document.getElementById("discount").innerHTML = `<p>Giảm giá <span class="float-end text-danger">-${data.discount.toLocaleString("vi-VN")}₫</span></p>`;
+                }
+
+                document.getElementById("totalBill").textContent = `${data.totalBill.toLocaleString("vi-VN")}₫`;
+                document.getElementById("fee").textContent = `${data.fee.toLocaleString("vi-VN")}₫`;
+                document.getElementById("vat").textContent = `${data.vat.toLocaleString("vi-VN")}₫`;
+
+                let listProduct = ``;
+                for (const item of data.productList) {
+                    listProduct += `<li class="list-group-item">${item.name} <span class="float-end">${item.discount > 0
+                            ? `<span>${(item.quantity * (item.price - (item.price / 100) * item.discount)).toLocaleString("vi-VN")} ₫</span> <del class="fs-6 text-secondary">${(item.quantity * item.price).toLocaleString("vi-VN")} ₫</del>`
+                            : `${(item.quantity * item.price).toLocaleString("vi-VN")} ₫`
+                        }</span></li>`;
+                }
+
+                document.getElementById("listProduct").innerHTML = listProduct;
+                document.getElementById("status_payment").innerHTML = `
+          <div class="status-section">
+            Trạng thái: Chờ thanh toán...
+            <div id="status" class="spinner-border spinner-border-sm text-secondary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        `;
+
+                orderId = data.orderId;
+                connectPaymentRealtime();
+
+                // Sau 1 giây thì ẩn modal buy và hiện modal payment
+                setTimeout(() => {
+                    const buyModal = document.getElementById("buyModal");
+                    const modal = bootstrap.Modal.getInstance(buyModal);
+                    if (modal) {
+                        modal.hide();
+                    } else {
+                        new bootstrap.Modal(buyModal).hide();
+                    }
+
+                    document.getElementById("paymentModelBtn").click();
+
+                    // Reset button về trạng thái ban đầu
+                    resetButton();
+                }, 1000);
+
+                return;
+            } else {
+                resetButton();
+                showErrorToast(data.message, 4000);
+            }
+        })
+        .catch((error) => {
+            // Xử lý lỗi network hoặc lỗi khác
+            resetButton();
+            showErrorToast("Lỗi kết nối. Vui lòng thử lại sau.", 4000);
+            console.error('Error:', error);
+        });
+
+    // Hàm helper để reset button về trạng thái ban đầu
+    function resetButton() {
+        buttonElement.classList.remove('loading', 'success');
+        btnText.innerHTML = originalContent;
+    }
 }
 
 function isValidEmail(email) {
@@ -568,45 +597,4 @@ function showErrorToast(message, duration = 7000) {
     stopOnFocus: true,
     close: true,
   }).showToast();
-}
-
-function buyNow(buttonElement) {
-    // Kiểm tra nếu đang loading
-    if (buttonElement && buttonElement.classList.contains('loading')) {
-        return;
-    }
-
-    // Tìm button nếu không được truyền vào
-    if (!buttonElement) {
-        buttonElement = document.querySelector('#buyModal .btn-success');
-    }
-
-    // Bắt đầu loading
-    const btnText = buttonElement.querySelector('.btn-text');
-    const originalContent = btnText.innerHTML;
-
-    buttonElement.classList.add('loading');
-    btnText.innerHTML = '<span class="luxury-spinner"></span><span class="loading-text">Đang xử lý...</span>';
-
-    // Logic thanh toán hiện tại của bạn ở đây
-    // Thay thế phần này bằng code hiện tại
-
-    // Giả lập API call
-    setTimeout(() => {
-        // Thành công - chuyển sang payment modal
-        buttonElement.classList.remove('loading');
-        buttonElement.classList.add('success');
-        btnText.innerHTML = '<i class="fas fa-check me-1"></i>Thành công!';
-
-        // Ẩn modal buy và hiện modal payment
-        setTimeout(() => {
-            $('#buyModal').modal('hide');
-            $('#paymentModal').modal('show');
-
-            // Reset button
-            buttonElement.classList.remove('success');
-            btnText.innerHTML = originalContent;
-        }, 1000);
-
-    }, 2000); // 2 giây loading demo
 }

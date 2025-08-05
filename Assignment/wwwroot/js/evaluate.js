@@ -1,5 +1,26 @@
 ﻿let selectedProduct = 0;
 
+function updateStarDisplay() {
+    const starInput = document.getElementById("star");
+    const starValue = document.getElementById("starValue");
+
+    if (starInput && starValue) {
+        starValue.textContent = starInput.value;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const starInput = document.getElementById("star");
+
+    if (starInput) {
+        starInput.addEventListener('input', updateStarDisplay);
+
+        starInput.addEventListener('change', updateStarDisplay);
+
+        updateStarDisplay();
+    }
+});
+
 function startCreate() {
   clearEvent();
   clearClass();
@@ -92,7 +113,8 @@ function startUpdate(id, star, content) {
     .addEventListener("click", update);
 
   selectedIds = id;
-  document.getElementById("star").value = star;
+    document.getElementById("star").value = star;
+    updateStarDisplay();
   window.editor.setData(content);
 }
 
@@ -226,7 +248,8 @@ function clearClass() {
 }
 
 function clearInput() {
-  document.getElementById("star").value = "5";
+    document.getElementById("star").value = "5";
+    updateStarDisplay();
   window.editor.setData("");
 }
 
