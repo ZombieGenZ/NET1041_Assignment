@@ -192,9 +192,18 @@
             <div class="detail-label">
                 <i class="fas fa-clock me-2"></i>Thời gian chuẩn bị
             </div>
-            <div class="detail-value">
-                <strong>@Model.PreparationTime phút</strong>
-            </div>
+            @if (@Model.PreparationTime == 0)
+            {
+                <div class="detail-value">
+                    <strong>Ngay lập tức</strong>
+                </div>
+            }
+            else
+            {
+                <div class="detail-value">
+                    <strong>@Model.PreparationTime phút</strong>
+                </div>
+            }
         </div>
         
         <div class="detail-row">

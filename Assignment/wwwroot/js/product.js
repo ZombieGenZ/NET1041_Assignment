@@ -313,13 +313,13 @@ function create() {
 
   if (
     isNaN(preparationTime) ||
-    (!isNaN(preparationTime) && preparationTime <= 0)
+    (!isNaN(preparationTime) && preparationTime < 0)
   ) {
     showWarningToast(`Thời gian chuẩn bị phải lớn hơn 0`, 4000);
     return;
   }
 
-  if (isNaN(calories) || (!isNaN(calories) && calories <= 0)) {
+  if (isNaN(calories) || (!isNaN(calories) && calories < 0)) {
     showWarningToast(`Thời gian chuẩn bị phải lớn hơn 0`, 4000);
     return;
   }
@@ -494,13 +494,13 @@ function update() {
 
   if (
     isNaN(preparationTime) ||
-    (!isNaN(preparationTime) && preparationTime <= 0)
+    (!isNaN(preparationTime) && preparationTime < 0)
   ) {
     showWarningToast(`Thời gian chuẩn bị phải lớn hơn 0`, 4000);
     return;
   }
 
-  if (isNaN(calories) || (!isNaN(calories) && calories <= 0)) {
+  if (isNaN(calories) || (!isNaN(calories) && calories < 0)) {
     showWarningToast(`Thời gian chuẩn bị phải lớn hơn 0`, 4000);
     return;
   }
