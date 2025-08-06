@@ -100,6 +100,7 @@ namespace Assignment.Controllers
             }
         }
 
+        [NonAction]
         public static async Task<Files?> Upload(IWebHostEnvironment webHostEnvironment, HttpRequest request, ApplicationDbContext context, IFormFile? file)
         {
             if (file == null || file.Length == 0)

@@ -161,7 +161,7 @@ function LoadData(search) {
                             }</td>
                             <td>${item.type === 0 ? "" : item.user?.name}</td>
                             <td>${
-                              item.type === 0
+                                item.discountType === 0
                                 ? item.discount.toLocaleString("vi-VN", {
                                     style: "currency",
                                     currency: "VND",

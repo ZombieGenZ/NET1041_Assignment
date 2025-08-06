@@ -145,6 +145,7 @@ function buyNow(buttonElement) {
     const phone = document.getElementById("phone").value;
     const quantity = document.getElementById("productQuantity").value;
     const voucher = document.getElementById("voucher").value;
+    const address = document.getElementById("address").value;
 
     // Validation trước khi bắt đầu loading
     if (!name || !phone || !quantity) {
@@ -175,6 +176,11 @@ function buyNow(buttonElement) {
         return;
     }
 
+    if (!address || address == "Không tìm thấy địa chỉ") {
+        showWarningToast(`Địa chỉ nhận hàng không hợp lệ`, 4000);
+        return;
+    }
+
     // Bắt đầu loading sau khi validation thành công
     const btnText = buttonElement.querySelector('.btn-text');
     const originalContent = btnText.innerHTML;
@@ -200,6 +206,7 @@ function buyNow(buttonElement) {
             Longitude: Number(getSelectedLocation()?.lng),
             Latitude: Number(getSelectedLocation()?.lat),
             Voucher: voucher ? voucher : null,
+            Address: address,
         }),
     })
         .then((response) => {
@@ -317,28 +324,28 @@ function isSimpleVietnamesePhoneNumber(phoneNumber) {
 }
 
 const map = new maplibregl.Map({
-  container: "map",
-  style: {
-    version: 8,
-    sources: {
-      osm: {
-        type: "raster",
-        tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"],
-        tileSize: 256,
-      },
+    container: "map",
+    style: {
+        version: 8,
+        sources: {
+            osm: {
+                type: "raster",
+                tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+                tileSize: 256,
+            },
+        },
+        layers: [
+            {
+                id: "osm",
+                type: "raster",
+                source: "osm",
+                minzoom: 0,
+                maxzoom: 19,
+            },
+        ],
     },
-    layers: [
-      {
-        id: "osm",
-        type: "raster",
-        source: "osm",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-    ],
-  },
-  center: [105.8542, 21.0285],
-  zoom: 13,
+    center: [105.8542, 21.0285],
+    zoom: 13,
 });
 
 let marker;
@@ -348,39 +355,118 @@ let selectedLng = null;
 let currentLat = null;
 let currentLng = null;
 
-map.on("click", (e) => {
-  selectedLat = e.lngLat.lat;
-  selectedLng = e.lngLat.lng;
+/**
+ * Gọi API Nominatim để lấy địa chỉ từ tọa độ
+ * @param {number} lat - Vĩ độ
+ * @param {number} lng - Kinh độ
+ */
+async function reverseGeocode(lat, lng) {
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=vi`
+        );
 
-  if (marker) marker.remove();
+        if (!response.ok) {
+            showErrorToast("Không thể lấy địa chỉ hiện tại của bạn");
+        }
 
-  marker = new maplibregl.Marker()
-    .setLngLat([selectedLng, selectedLat])
-    .addTo(map);
+        const data = await response.json();
+
+        const address = data.display_name || 'Không tìm thấy địa chỉ';
+
+        const addressInput = document.getElementById('address');
+        if (addressInput) {
+            addressInput.value = address;
+        } else {
+            console.warn('Không tìm thấy element với id="address"');
+        }
+
+        return address;
+    } catch (error) {
+        const addressInput = document.getElementById('address');
+        if (addressInput) {
+            addressInput.value = 'Lỗi khi lấy địa chỉ';
+        }
+
+        return null;
+    }
+}
+
+map.on("click", async (e) => {
+    selectedLat = e.lngLat.lat;
+    selectedLng = e.lngLat.lng;
+
+    if (marker) marker.remove();
+
+    marker = new maplibregl.Marker()
+        .setLngLat([selectedLng, selectedLat])
+        .addTo(map);
+
+    await reverseGeocode(selectedLat, selectedLng);
 });
 
 map.on("load", () => {
-  if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const lng = position.coords.longitude;
-      const lat = position.coords.latitude;
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lng = position.coords.longitude;
+                const lat = position.coords.latitude;
 
-      currentLat = lat;
-      currentLng = lng;
+                currentLat = lat;
+                currentLng = lng;
 
-      map.flyTo({
-        center: [lng, lat],
-        zoom: 15,
-        essential: true,
-      });
+                map.flyTo({
+                    center: [lng, lat],
+                    zoom: 15,
+                    essential: true,
+                });
 
-      currentLocationMarker = new maplibregl.Marker({
-        color: "#3333FF",
-      })
-        .setLngLat([lng, lat])
-        .addTo(map);
-    });
-  }
+                currentLocationMarker = new maplibregl.Marker({
+                    color: "#3333FF",
+                })
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+
+                await reverseGeocode(lat, lng);
+            },
+            async () => {
+                const defaultLat = 21.0285;
+                const defaultLng = 105.8542;
+
+                currentLat = defaultLat;
+                currentLng = defaultLng;
+
+                currentLocationMarker = new maplibregl.Marker({
+                    color: "#3333FF",
+                })
+                    .setLngLat([defaultLng, defaultLat])
+                    .addTo(map);
+
+                await reverseGeocode(defaultLat, defaultLng);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        showErrorToast("Trình duyệt của bạn không hỗ trợ geolocation");
+
+        const defaultLat = 21.0285;
+        const defaultLng = 105.8542;
+
+        currentLat = defaultLat;
+        currentLng = defaultLng;
+
+        currentLocationMarker = new maplibregl.Marker({
+            color: "#3333FF",
+        })
+            .setLngLat([defaultLng, defaultLat])
+            .addTo(map);
+
+        reverseGeocode(defaultLat, defaultLng);
+    }
 });
 
 /**
@@ -389,37 +475,41 @@ map.on("load", () => {
  * @param {number} lng - Kinh độ
  * @param {Object} options - Tùy chọn
  */
-function setLocation(lat, lng, options = {}) {
-  if (!isValidLatitude(lat) || !isValidLongitude(lng)) {
-    console.error("Tọa độ không hợp lệ!");
-    return false;
-  }
+async function setLocation(lat, lng, options = {}) {
+    if (!isValidLatitude(lat) || !isValidLongitude(lng)) {
+        console.error("Tọa độ không hợp lệ!");
+        return false;
+    }
 
-  selectedLat = lat;
-  selectedLng = lng;
+    selectedLat = lat;
+    selectedLng = lng;
 
-  if (marker) marker.remove();
+    if (marker) marker.remove();
 
-  if (currentLocationMarker) {
-    currentLocationMarker.remove();
-    currentLocationMarker = null;
-  }
+    if (currentLocationMarker) {
+        currentLocationMarker.remove();
+        currentLocationMarker = null;
+    }
 
-  marker = new maplibregl.Marker({
-    color: "#3333FF",
-  })
-    .setLngLat([lng, lat])
-    .addTo(map);
+    marker = new maplibregl.Marker({
+        color: "#3333FF",
+    })
+        .setLngLat([lng, lat])
+        .addTo(map);
 
-  if (options.flyTo !== false) {
-    map.flyTo({
-      center: [lng, lat],
-      zoom: options.zoom || 15,
-      essential: true,
-    });
-  }
+    if (options.flyTo !== false) {
+        map.flyTo({
+            center: [lng, lat],
+            zoom: options.zoom || 15,
+            essential: true,
+        });
+    }
 
-  return true;
+    if (options.reverseGeocode !== false) {
+        await reverseGeocode(lat, lng);
+    }
+
+    return true;
 }
 
 /**
@@ -427,66 +517,72 @@ function setLocation(lat, lng, options = {}) {
  * @returns {Object|null} {lat, lng} hoặc null nếu chưa chọn
  */
 function getSelectedLocation() {
-  if (selectedLat !== null && selectedLng !== null) {
-    return {
-      lat: selectedLat,
-      lng: selectedLng,
-    };
-  }
-  return null;
+    if (selectedLat !== null && selectedLng !== null) {
+        return {
+            lat: selectedLat,
+            lng: selectedLng,
+        };
+    }
+    return null;
 }
 
 /**
  * Reset về trạng thái ban đầu (như lúc load)
  */
-function resetToCurrentLocation() {
-  if (currentLat !== null && currentLng !== null) {
-    if (marker) {
-      marker.remove();
-      marker = null;
+async function resetToCurrentLocation() {
+    if (currentLat !== null && currentLng !== null) {
+        if (marker) {
+            marker.remove();
+            marker = null;
+        }
+
+        selectedLat = null;
+        selectedLng = null;
+
+        map.flyTo({
+            center: [currentLng, currentLat],
+            zoom: 15,
+            essential: true,
+        });
+
+        if (!currentLocationMarker) {
+            currentLocationMarker = new maplibregl.Marker({
+                color: "#3333FF",
+            })
+                .setLngLat([currentLng, currentLat])
+                .addTo(map);
+        }
+
+        await reverseGeocode(currentLat, currentLng);
     }
-
-    selectedLat = null;
-    selectedLng = null;
-
-    map.flyTo({
-      center: [currentLng, currentLat],
-      zoom: 15,
-      essential: true,
-    });
-
-    if (!currentLocationMarker) {
-      currentLocationMarker = new maplibregl.Marker({
-        color: "#3333FF",
-      })
-        .setLngLat([currentLng, currentLat])
-        .addTo(map);
-    }
-  }
 }
 
 /**
  * Reset hoàn toàn (xóa tất cả marker và về vị trí mặc định)
  */
 function resetToDefault() {
-  // Xóa tất cả marker
-  if (marker) {
-    marker.remove();
-    marker = null;
-  }
-  if (currentLocationMarker) {
-    currentLocationMarker.remove();
-    currentLocationMarker = null;
-  }
+    if (marker) {
+        marker.remove();
+        marker = null;
+    }
+    if (currentLocationMarker) {
+        currentLocationMarker.remove();
+        currentLocationMarker = null;
+    }
 
-  selectedLat = null;
-  selectedLng = null;
+    selectedLat = null;
+    selectedLng = null;
 
-  map.flyTo({
-    center: [105.8542, 21.0285],
-    zoom: 13,
-    essential: true,
-  });
+    map.flyTo({
+        center: [105.8542, 21.0285],
+        zoom: 13,
+        essential: true,
+    });
+
+    const addressInput = document.getElementById('address');
+    if (addressInput) {
+        addressInput.value = '';
+    }
 }
 
 /**
@@ -495,13 +591,13 @@ function resetToDefault() {
  * @returns {boolean}
  */
 function isValidLatitude(lat) {
-  return (
-    lat !== null &&
-    lat !== undefined &&
-    !isNaN(Number(lat)) &&
-    lat >= -90 &&
-    lat <= 90
-  );
+    return (
+        lat !== null &&
+        lat !== undefined &&
+        !isNaN(Number(lat)) &&
+        lat >= -90 &&
+        lat <= 90
+    );
 }
 
 /**
@@ -510,13 +606,13 @@ function isValidLatitude(lat) {
  * @returns {boolean}
  */
 function isValidLongitude(lng) {
-  return (
-    lng !== null &&
-    lng !== undefined &&
-    !isNaN(Number(lng)) &&
-    lng >= -180 &&
-    lng <= 180
-  );
+    return (
+        lng !== null &&
+        lng !== undefined &&
+        !isNaN(Number(lng)) &&
+        lng >= -180 &&
+        lng <= 180
+    );
 }
 
 /**
@@ -524,28 +620,28 @@ function isValidLongitude(lng) {
  * @param {Array} locations - Mảng các {lat, lng, color?, popup?}
  */
 function setMultipleLocations(locations) {
-  const markers = [];
+    const markers = [];
 
-  locations.forEach((location, index) => {
-    if (isValidLatitude(location.lat) && isValidLongitude(location.lng)) {
-      const marker = new maplibregl.Marker({
-        color: location.color || "#FF0000",
-      })
-        .setLngLat([location.lng, location.lat])
-        .addTo(map);
+    locations.forEach((location, index) => {
+        if (isValidLatitude(location.lat) && isValidLongitude(location.lng)) {
+            const marker = new maplibregl.Marker({
+                color: location.color || "#FF0000",
+            })
+                .setLngLat([location.lng, location.lat])
+                .addTo(map);
 
-      if (location.popup) {
-        const popup = new maplibregl.Popup({ offset: 25 }).setText(
-          location.popup
-        );
-        marker.setPopup(popup);
-      }
+            if (location.popup) {
+                const popup = new maplibregl.Popup({ offset: 25 }).setText(
+                    location.popup
+                );
+                marker.setPopup(popup);
+            }
 
-      markers.push(marker);
-    }
-  });
+            markers.push(marker);
+        }
+    });
 
-  return markers;
+    return markers;
 }
 
 /**

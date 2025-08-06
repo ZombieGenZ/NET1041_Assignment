@@ -27,6 +27,10 @@ namespace Assignment.Models
         [Range(-90, 90)]
         public double Latitude { get; set; } = 0; // Vĩ độ
         [Required]
+        [StringLength(1000)]
+        [DefaultValue("")]
+        public string Address { get; set; }
+        [Required]
         [Range(0, long.MaxValue)]
         public long TotalQuantity { get; set; }
         [Required]

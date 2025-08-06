@@ -66,6 +66,15 @@ namespace Assignment.Controllers
                     });
                 }
 
+                if (string.IsNullOrWhiteSpace(order.Address) || !string.IsNullOrWhiteSpace(order.Address) && order.Address == "Không tìm thấy địa chỉ")
+                {
+                    return UnprocessableEntity(new
+                    {
+                        code = "INPUT_DATA_ERROR",
+                        message = "Địa chỉ nhận hàng không hợp lệ không hợp lệ"
+                    });
+                }
+
                 if (order.Items.Count == 0)
                 {
                     return UnprocessableEntity(new
@@ -296,7 +305,8 @@ namespace Assignment.Controllers
                     TotalPrice = totalPrice,
                     Discount = discount,
                     Vat = vat,
-                    UserId = userId
+                    UserId = userId,
+                    Address = order.Address
                 };
 
                 _context.Orders.Add(orderEntity);

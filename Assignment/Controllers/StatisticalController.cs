@@ -19,7 +19,7 @@ namespace Assignment.Controllers
             try
             {
                 var dateRange = GetDateRange(period);
-                var chartDateRange = GetDateRange(chartPeriod);
+                var chartDateRange = GetDateRangeForChart(chartPeriod);
                 var categoryDateRange = GetDateRange(categoryPeriod);
                 var productsDateRange = GetDateRange(productsPeriod);
                 var customersDateRange = GetDateRange(customersPeriod);
@@ -52,9 +52,10 @@ namespace Assignment.Controllers
 
                 if (chartPeriod == "week")
                 {
-                    for (int i = 0; i < 7; i++)
+                    var today = DateTime.Now.Date;
+                    for (int i = 6; i >= 0; i--)
                     {
-                        var dayStart = chartDateRange.startDate.AddDays(i);
+                        var dayStart = today.AddDays(-i);
                         var dayEnd = dayStart.AddDays(1).AddTicks(-1);
 
                         var dayRevenue = chartOrdersQuery
@@ -67,23 +68,36 @@ namespace Assignment.Controllers
                 }
                 else if (chartPeriod == "month")
                 {
-                    var weeksInMonth = GetWeeksInMonth(chartDateRange.startDate);
-                    for (int i = 0; i < weeksInMonth.Count; i++)
+                    var today = DateTime.Now.Date;
+                    var startOfCurrentWeek = today.AddDays(-(int)today.DayOfWeek + 1);
+
+                    for (int i = 3; i >= 0; i--)
                     {
+                        var weekStart = startOfCurrentWeek.AddDays(-i * 7);
+                        var weekEnd = weekStart.AddDays(6).AddDays(1).AddTicks(-1);
+
+                        if (i == 0 && weekEnd > DateTime.Now)
+                        {
+                            weekEnd = DateTime.Now;
+                        }
+
                         var weekRevenue = chartOrdersQuery
-                            .Where(o => o.CreatedTime >= weeksInMonth[i].start && o.CreatedTime <= weeksInMonth[i].end)
+                            .Where(o => o.CreatedTime >= weekStart && o.CreatedTime <= weekEnd)
                             .Sum(o => (decimal)(o.TotalPrice + (o.Fee - o.FeeExcludingTax)));
 
-                        revenueChartData.Labels.Add($"Tuần {i + 1}");
+                        revenueChartData.Labels.Add($"Tuần {4 - i}");
                         revenueChartData.Data.Add(weekRevenue);
                     }
                 }
                 else if (chartPeriod == "year")
                 {
-                    for (int i = 1; i <= 12; i++)
+                    var currentYear = DateTime.Now.Year;
+                    var currentMonth = DateTime.Now.Month;
+
+                    for (int i = 1; i <= currentMonth; i++)
                     {
-                        var monthStart = new DateTime(chartDateRange.startDate.Year, i, 1);
-                        var monthEnd = monthStart.AddMonths(1).AddTicks(-1);
+                        var monthStart = new DateTime(currentYear, i, 1);
+                        var monthEnd = i == currentMonth ? DateTime.Now : monthStart.AddMonths(1).AddTicks(-1);
 
                         var monthRevenue = chartOrdersQuery
                             .Where(o => o.CreatedTime >= monthStart && o.CreatedTime <= monthEnd)
@@ -232,6 +246,32 @@ namespace Assignment.Controllers
                 default:
                     startDate = DateTime.MinValue;
                     endDate = DateTime.MaxValue;
+                    break;
+            }
+
+            return (startDate, endDate);
+        }
+
+        private (DateTime startDate, DateTime endDate) GetDateRangeForChart(string periodType)
+        {
+            var now = DateTime.Now;
+            var startDate = DateTime.MinValue;
+            var endDate = now;
+
+            switch (periodType?.ToLower())
+            {
+                case "week":
+                    startDate = now.Date.AddDays(-6);
+                    break;
+                case "month":
+                    startDate = now.Date.AddDays(-27);
+                    break;
+                case "year":
+                    // Từ đầu năm đến nay
+                    startDate = new DateTime(now.Year, 1, 1);
+                    break;
+                default:
+                    startDate = now.Date.AddDays(-30);
                     break;
             }
 
