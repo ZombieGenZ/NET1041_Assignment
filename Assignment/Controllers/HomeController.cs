@@ -20,7 +20,9 @@ namespace Assignment.Controllers
                           [FromQuery] string? priceSort, [FromQuery] string? ratingSort,
                           [FromQuery] string? salesSort)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products
+                .Where(p => p.IsPublish == true)
+                .AsQueryable();
             SearchProductViewModel searchProductViewModel = new SearchProductViewModel();
 
             if (!string.IsNullOrWhiteSpace(text))
@@ -37,12 +39,12 @@ namespace Assignment.Controllers
 
             if (min.HasValue)
             {
-                query = query.Where(p => p.Price >= min.Value);
+                query = query.Where(p => p.Price - (p.Price / 100) * p.Discount >= min.Value);
                 searchProductViewModel.Min = min.Value;
             }
             if (max.HasValue)
             {
-                query = query.Where(p => p.Price <= max.Value);
+                query = query.Where(p => p.Price - (p.Price / 100) * p.Discount <= max.Value);
                 searchProductViewModel.Max = max.Value;
             }
 
@@ -57,6 +59,7 @@ namespace Assignment.Controllers
             var products = query.ToList();
             var productsByCategory = products
                 .GroupBy(p => p.Category)
+                .OrderBy(g => g.Key.Index)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             searchProductViewModel.Data = productsByCategory;
