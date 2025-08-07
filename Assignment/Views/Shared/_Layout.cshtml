@@ -157,6 +157,11 @@
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
                         <li class="nav-item cart-menu">
+                            <a class="nav-link" asp-controller="Chat" asp-action="Index">
+                                    <i class="fa-solid fa-headset me-1"></i>Trò chuyện
+                            </a>
+                        </li>
+                        <li class="nav-item cart-menu">
                             <a class="nav-link" asp-controller="Home" asp-action="Cart">
                                 <i class="bi bi-cart me-1"></i>Giỏ hàng 
                                 <span class="badge rounded-pill bg-primary ms-1" id="cart-count">0</span>
@@ -165,6 +170,11 @@
                     }
                     else
                     {
+                        <li class="nav-item cart-menu">
+                            <a class="nav-link" asp-controller="Chat" asp-action="Index">
+                                <i class="fa-solid fa-headset me-1"></i>Trò chuyện
+                            </a>
+                        </li>
                         <!-- Guest Cart -->
                         <li class="nav-item cart-menu">
                             <a class="nav-link" asp-controller="Home" asp-action="Cart">
@@ -227,6 +237,7 @@
 </div>
 
 <!-- Scripts -->
+<script src="~/js/chatidentification.js"></script>
 <script src="~/js/cartcount.js"></script>
 <script src="https://kit.fontawesome.com/476445fe42.js" crossorigin="anonymous"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">

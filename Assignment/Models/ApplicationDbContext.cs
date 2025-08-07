@@ -19,5 +19,7 @@ namespace Assignment.Models
         public DbSet<Redeems> Redeems { get; set; }
         public DbSet<ForgotPassword> ForgotPasswords { get; set; }
         public DbSet<VerifyAccount> VerifyAccounts { get; set; }
+        public DbSet<ChatRoom> ChatRooms { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
     }
 }

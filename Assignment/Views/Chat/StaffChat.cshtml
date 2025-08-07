@@ -1,0 +1,55 @@
+﻿<link href="~/css/chatstaff.css" rel="stylesheet" />
+@{
+    ViewData["Title"] = "Trò chuyện với người dùng";
+}
+
+<div class="chat-app">
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+        <div class="sidebar-header">
+            <h5 class="mb-0">
+                Tin nhắn
+            </h5>
+        </div>
+
+        <div class="chat-list" id="listData"></div>
+    </div>
+
+    @if (ViewBag.CurrentRoomChat != 0)
+    {
+        <!-- Main Chat -->
+        <div class="chat-main">
+            <!-- Header -->
+            <div class="chat-header">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Nguyễn An</h6>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="chat-messages" id="messageList"></div>
+
+            <!-- Input -->
+            <div class="chat-input">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Nhập tin nhắn..." id="messageInput">
+                    <button class="btn btn-primary" type="button" id="sendButton" onclick="sendMessage()">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="text-center">Chọn mục bên trái để bắt đầu trò truyện với khác hàng</p>
+    }
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    const CurrentRoomChat = @(ViewBag.CurrentRoomChat);
+</script>
+<script src="~/js/chatstaff.js"></script>
