@@ -179,6 +179,10 @@
                                 <button class="float-end btn btn-danger" onclick="startSelected(@order.Id)" data-bs-toggle="modal" data-bs-target="#deleteModal">Hủy đơn hàng</button>
                                 <button class="float-end btn btn-info" onclick="startPayment(@order.Id, @order.TotalBill, @order.TotalPrice, '@order.Discount', @order.Fee, @order.Vat)" data-bs-toggle="modal" data-bs-target="#paymentModal">Thanh toán</button>
                             }
+                            @if (order.Status == OrderStatus.Completed)
+                            {
+                                <a class="float-end btn btn-info" href="@order.BillUrl">Hóa đơn</a>
+                            }
                         </div>
                     </div>
                 </div>

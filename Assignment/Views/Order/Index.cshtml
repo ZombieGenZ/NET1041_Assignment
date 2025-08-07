@@ -181,6 +181,10 @@
                             {
                                 <button class="float-end btn btn-success" onclick="accept(@order.Id)">Xác nhận đơn hàng</button>
                             }
+                            @if (order.Status == OrderStatus.Completed)
+                            {
+                                <a class="float-end btn btn-info" href="@order.BillUrl">Hóa đơn</a>
+                            }
                         </div>
                     </div>
                 </div>
