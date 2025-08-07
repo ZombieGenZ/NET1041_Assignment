@@ -131,6 +131,7 @@ function LoadData() {
         if (data.data.length > 0) {
           id = data.roomId;
           let list = "";
+          document.getElementById("name").innerHTML = data.name;
           for (var item of data.data) {
             if (item.isFromUser) {
               list += `

@@ -36,15 +36,15 @@ namespace Assignment.Controllers
 
             if (id.HasValue)
             {
-                room = _context.ChatRooms.Include(cr => cr.ChatMessages).FirstOrDefault(cr => cr.Id == id.Value);
+                room = _context.ChatRooms.Include(cr => cr.ChatMessages).Include(chatRoom => chatRoom.User).FirstOrDefault(cr => cr.Id == id.Value);
             }
             else if (userId != null)
             {
-                room = _context.ChatRooms.Include(cr => cr.ChatMessages).FirstOrDefault(cr => cr.IsIdentification && cr.UserId == userId.Value);
+                room = _context.ChatRooms.Include(cr => cr.ChatMessages).Include(chatRoom => chatRoom.User).FirstOrDefault(cr => cr.IsIdentification && cr.UserId == userId.Value);
             }
             else if (!string.IsNullOrWhiteSpace(chatid))
             {
-                room = _context.ChatRooms.Include(cr => cr.ChatMessages).FirstOrDefault(cr => !cr.IsIdentification && cr.ChatId == chatid);
+                room = _context.ChatRooms.Include(cr => cr.ChatMessages).Include(chatRoom => chatRoom.User).FirstOrDefault(cr => !cr.IsIdentification && cr.ChatId == chatid);
             }
 
             if (room == null)
@@ -97,6 +97,7 @@ namespace Assignment.Controllers
             {
                 code = "OK",
                 roomId = room?.Id,
+                name = (bool)(!room?.IsIdentification)! ? $"Khách hàng {room?.Id}" : room?.User?.Name,
                 data = room?.ChatMessages ?? new List<ChatMessage>()
             });
         }

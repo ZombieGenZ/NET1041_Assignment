@@ -2,7 +2,6 @@
 let id = 0;
 window.addEventListener("load", async () => {
   initConnection();
-  LoadData();
   await connectChatRealtime();
 });
 
@@ -126,7 +125,9 @@ function formatDateTime(date) {
 }
 
 async function connectChatRealtime() {
-  try {
+    try {
+    await LoadData();
+
     await connection.start();
 
     if (!connection) {
