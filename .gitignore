@@ -60,3 +60,7 @@ web.config.user
 Assignment/wwwroot/Uploads/**
 !Assignment/wwwroot/Uploads/.gitkeep
 !Assignment/wwwroot/Uploads/
+
+Assignment/wwwroot/Bills/**
+!Assignment/wwwroot/Bills/.gitkeep
+!Assignment/wwwroot/Bills/

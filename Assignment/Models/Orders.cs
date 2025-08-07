@@ -53,6 +53,9 @@ namespace Assignment.Models
         public double TotalBill { get; set; }
         [Required]
         public OrderStatus Status { get; set; }
+        [StringLength(1000)]
+        [DefaultValue(null)]
+        public string? BillUrl { get; set; }
         [Required]
         public DateTime CreatedTime { get; set; } = DateTime.Now;
         [Required]

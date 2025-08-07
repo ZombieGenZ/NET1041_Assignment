@@ -508,7 +508,7 @@ namespace Assignment.Controllers
         [HttpPut]
         [Route("api/orders/complete/{id:long}")]
         [Authorize(Policy = "ShipperPolicy")]
-        public IActionResult CompleteTransportOrder(long id)
+        public async Task<IActionResult> CompleteTransportOrder(long id)
         {
             try
             {
@@ -549,7 +549,10 @@ namespace Assignment.Controllers
                 exitingOrder.Status = OrderStatus.Completed;
                 EarnPoint.IncreaseAccumulatedPoint(_context, exitingOrder.TotalPrice * 2, (long)exitingOrder.UserId!);
                 _context.Orders.Update(exitingOrder);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                BillService service = new BillService(_context);
+                await service.GenerateBill(exitingOrder.Id);
 
                 return Json(new
                 {
