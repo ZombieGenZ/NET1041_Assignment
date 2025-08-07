@@ -1,35 +1,80 @@
 ﻿<link href="~/css/chatuser.css" rel="stylesheet" />
 @{
-    ViewData["Title"] = "Trò truyện với nhân viên";
+    ViewData["Title"] = "Trò chuyện với nhân viên";
 }
 
-<div class="chat-container">
-    <!-- Header -->
-    <div class="chat-header">
-        <h5 class="mb-0">
-            <i class="fas fa-comments me-2"></i>
-            Chat
-        </h5>
-    </div>
+<div class="chat-app chat-fit-screen">
+    <!-- Main Chat (No sidebar for user) -->
+    <div class="chat-main user-chat">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar">
+                        <div class="avatar-img">NV</div>
+                        <div class="status-indicator online"></div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 fw-bold">Nhân viên hỗ trợ</h6>
+                        <small class="text-light opacity-75">Đang hoạt động</small>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" title="Thông tin">ℹ️</button>
+                    <button class="btn-icon" title="Cài đặt">⚙️</button>
+                </div>
+            </div>
+        </div>
 
-    <!-- Messages -->
-    <div class="chat-messages">
+        <!-- Authentication Warning -->
         @if (User.Identity != null && !User.Identity.IsAuthenticated)
         {
-            <div class="alert alert-warning text-center">
-                Dử liệu cuộc trò truyện này sẽ có thể bị mất! Vui lòng <a asp-action="Login" asp-controller="User" class="alert-link">Đăng nhập tài khoản</a> để không bị mất dử liệu cuộc trò chuyện
+            <div class="auth-warning">
+                <div class="warning-content">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-text">
+                        <strong>Cảnh báo:</strong> Dữ liệu cuộc trò chuyện này có thể bị mất! 
+                        <a asp-action="Login" asp-controller="User" class="warning-link">Đăng nhập tài khoản</a> 
+                        để không bị mất dữ liệu cuộc trò chuyện
+                    </div>
+                </div>
             </div>
         }
-        <div id="messageList"></div>
-    </div>
 
-    <!-- Input -->
-    <div class="chat-input">
-        <div class="input-group">
-            <input type="text" class="form-control" placeholder="Nhập tin nhắn..." id="messageInput">
-            <button class="btn btn-primary" type="button" id="sendButton" onclick="sendMessage()">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+        <!-- Messages -->
+        <div class="chat-messages" id="messageList">
+            <div class="messages-container">
+                <!-- Welcome message -->
+                <div class="welcome-message">
+                    <div class="welcome-icon">💬</div>
+                    <h4>Chào mừng bạn!</h4>
+                    <p>Nhân viên hỗ trợ sẵn sàng giúp đỡ bạn</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input">
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <input type="text" 
+                           class="form-control message-input" 
+                           placeholder="Nhập tin nhắn..." 
+                           id="messageInput">
+                    <div class="input-actions">
+                        <button class="btn-emoji" title="Emoji">😊</button>
+                        <button class="btn-attachment" title="Đính kèm">📎</button>
+                    </div>
+                </div>
+                <button class="btn-send" type="button" id="sendButton" onclick="sendMessage()">
+                    <div class="send-icon">
+                        <span>➤</span>
+                    </div>
+                    <div class="send-loading">
+                        <div class="spinner"></div>
+                    </div>
+                </button>
+            </div>
         </div>
     </div>
 </div>

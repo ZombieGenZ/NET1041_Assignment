@@ -3,16 +3,42 @@
     ViewData["Title"] = "Trò chuyện với người dùng";
 }
 
-<div class="chat-app">
+<div class="chat-app chat-fit-screen">
     <!-- Sidebar -->
     <div class="chat-sidebar">
         <div class="sidebar-header">
-            <h5 class="mb-0">
-                Tin nhắn
-            </h5>
+            <div class="d-flex align-items-center">
+                <div class="avatar-stack">
+                    <div class="avatar-circle"></div>
+                    <div class="avatar-circle"></div>
+                    <div class="avatar-circle"></div>
+                </div>
+                <h5 class="mb-0 ms-3">
+                    Tin nhắn
+                    <span class="pulse-indicator"></span>
+                </h5>
+            </div>
         </div>
 
-        <div class="chat-list" id="listData"></div>
+        <div class="chat-list" id="listData">
+            <!-- Skeleton loading -->
+            <div class="chat-skeleton">
+                <div class="skeleton-item">
+                    <div class="skeleton-avatar"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+                <div class="skeleton-item">
+                    <div class="skeleton-avatar"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     @if (ViewBag.CurrentRoomChat != 0)
@@ -21,22 +47,51 @@
         <div class="chat-main">
             <!-- Header -->
             <div class="chat-header">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <h6 class="mb-0">Nguyễn An</h6>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar">
+                            <div class="avatar-img">NA</div>
+                            <div class="status-indicator online"></div>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 fw-bold">Nguyễn An</h6>
+                            <small class="text-light opacity-75">Đang hoạt động</small>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Messages -->
-            <div class="chat-messages" id="messageList"></div>
+            <div class="chat-messages" id="messageList">
+                <div class="messages-container">
+                    <!-- Welcome message -->
+                    <div class="welcome-message">
+                        <div class="welcome-icon">💬</div>
+                        <p>Bắt đầu cuộc trò chuyện</p>
+                    </div>
+                </div>
+            </div>
 
             <!-- Input -->
             <div class="chat-input">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Nhập tin nhắn..." id="messageInput">
-                    <button class="btn btn-primary" type="button" id="sendButton" onclick="sendMessage()">
-                        ➤
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <input type="text" 
+                               class="form-control message-input" 
+                               placeholder="Nhập tin nhắn..." 
+                               id="messageInput">
+                        <div class="input-actions">
+                            <button class="btn-emoji" title="Emoji">😊</button>
+                            <button class="btn-attachment" title="Đính kèm">📎</button>
+                        </div>
+                    </div>
+                    <button class="btn-send" type="button" id="sendButton" onclick="sendMessage()">
+                        <div class="send-icon">
+                            <span>➤</span>
+                        </div>
+                        <div class="send-loading">
+                            <div class="spinner"></div>
+                        </div>
                     </button>
                 </div>
             </div>
@@ -44,7 +99,11 @@
     }
     else
     {
-        <p class="text-center">Chọn mục bên trái để bắt đầu trò truyện với khác hàng</p>
+        <div class="empty-state">
+            <div class="empty-icon">💭</div>
+            <h4>Chào mừng bạn!</h4>
+            <p>Chọn một cuộc trò chuyện từ danh sách bên trái để bắt đầu</p>
+        </div>
     }
 </div>
 

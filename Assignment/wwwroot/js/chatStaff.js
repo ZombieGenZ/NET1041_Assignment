@@ -137,7 +137,7 @@ function LoadData() {
                     <div class="message received">
                         <div class="message-bubble">
                             <div>${item.message}</div>
-                            <small class="text-light d-block mt-1" style="font-size: 0.75rem; opacity: 0.8;">${formatDateTime(
+                            <small class="text-black d-block mt-1" style="font-size: 0.75rem; opacity: 0.8;">${formatDateTime(
                               new Date(item.createdAt)
                             )}</small>
                         </div>
