@@ -20,7 +20,7 @@
             if (data.length > 0) {
                 let list = "";
                 for (var item of data) {
-                    list += `<option value="${item.id}">${item.name} (${item.email})</option>`;
+                    list += `<option value="${item.id}">${item.name} (${item.email}) - Đang giao ${item.totalDeliveryOrders} đơn hàng</option>`;
                 }
                 listDom.innerHTML = list;
             }

@@ -1,4 +1,5 @@
-﻿using Assignment.Models;
+﻿using Assignment.Enum;
+using Assignment.Models;
 using Assignment.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -89,8 +90,11 @@ namespace Assignment.Controllers
                     u.PenaltyIsBanned,
                     u.PenaltyStartTime,
                     u.PenaltyReason,
-                    u.PenaltyExpiredTime
+                    u.PenaltyExpiredTime,
+                    TotalDeliveryOrders = _context.Orders
+                        .Count(o => o.ShipperId == u.Id && o.Status == OrderStatus.Delivery)
                 })
+                .OrderBy(u => u.TotalDeliveryOrders)
                 .ToList());
         }
         [HttpGet]
