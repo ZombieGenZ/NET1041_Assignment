@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Assignment.Enum;
+using Assignment.Utilities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Assignment.Controllers
 {
@@ -12,8 +14,10 @@ namespace Assignment.Controllers
         {
             _context = context;
         }
+        [Route("statistical")]
         public IActionResult Index(string period = "month", string chartPeriod = "month", string categoryPeriod = "month", string productsPeriod = "month", string customersPeriod = "month")
         {
+            var userId = CookieAuthHelper.GetUserId(HttpContext.User);
             var model = new StatisticalModel();
 
             try
@@ -218,6 +222,204 @@ namespace Assignment.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        [Route("statistical/shipper/{id:long?}")]
+        [Authorize(Policy = "ShipperPolicy")]
+        public IActionResult Shipper(long? id, string period = "month", string chartPeriod = "month")
+        {
+            var model = new ShipperStatisticalModel();
+
+            try
+            {
+                long? shipperId = null;
+                bool isAdminOverview = false;
+                var role = CookieAuthHelper.GetRole(HttpContext.User);
+
+                if (role == "Admin")
+                {
+                    var shippers = _context.Users
+                        .Where(u => u.Role == "Shipper")
+                        .Select(u => new { u.Id, u.Name })
+                        .ToList();
+                    ViewBag.Shippers = shippers;
+                }
+
+                if (role == "Admin" && !id.HasValue)
+                {
+                    isAdminOverview = true;
+                }
+                else if (id.HasValue)
+                {
+                    shipperId = id.Value;
+                }
+                else
+                {
+                    shipperId = CookieAuthHelper.GetUserId(HttpContext.User);
+                }
+
+                var dateRange = GetDateRange(period);
+                var chartDateRange = GetDateRangeForChart(chartPeriod);
+
+                if (!isAdminOverview)
+                {
+                    var shipper = _context.Users.FirstOrDefault(u => u.Id == shipperId);
+                    if (shipper == null)
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+                    model.ShipperName = shipper.Name;
+                    model.ShipperId = shipperId;
+                }
+                else
+                {
+                    model.ShipperName = "Tổng quan tất cả shipper";
+                    model.ShipperId = null;
+                }
+
+                var ordersQuery = _context.Orders
+                    .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Product)
+                    .Where(o => o.CreatedTime >= dateRange.startDate && o.CreatedTime <= dateRange.endDate);
+
+                if (!isAdminOverview)
+                {
+                    ordersQuery = ordersQuery.Where(o => o.ShipperId == shipperId);
+                }
+
+                var allOrders = ordersQuery.ToList();
+
+                var deliveringOrders = allOrders.Where(o => o.Status == OrderStatus.Delivery).ToList();
+                model.DeliveringOrders = deliveringOrders.Count();
+                model.DeliveringRevenue = deliveringOrders.Sum(o => o.FeeExcludingTax);
+
+                var completedOrders = allOrders.Where(o => o.Status == OrderStatus.Completed).ToList();
+                model.CompletedOrders = completedOrders.Count();
+                model.TotalRevenue = completedOrders.Sum(o => o.FeeExcludingTax);
+
+                var revenueChartData = new ChartData
+                {
+                    Labels = new List<string>(),
+                    Data = new List<decimal>()
+                };
+
+                var chartOrdersQuery = _context.Orders
+                    .Where(o => o.CreatedTime >= chartDateRange.startDate &&
+                               o.CreatedTime <= chartDateRange.endDate &&
+                               o.Status == OrderStatus.Completed);
+
+                if (!isAdminOverview)
+                {
+                    chartOrdersQuery = chartOrdersQuery.Where(o => o.ShipperId == shipperId);
+                }
+
+                if (chartPeriod == "week")
+                {
+                    var today = DateTime.Now.Date;
+                    for (int i = 6; i >= 0; i--)
+                    {
+                        var dayStart = today.AddDays(-i);
+                        var dayEnd = dayStart.AddDays(1).AddTicks(-1);
+
+                        var dayRevenue = chartOrdersQuery
+                            .Where(o => o.CreatedTime >= dayStart && o.CreatedTime <= dayEnd)
+                            .Sum(o => (decimal)(o.Fee - o.FeeExcludingTax));
+
+                        revenueChartData.Labels.Add(GetDayOfWeekVietnamese(dayStart.DayOfWeek));
+                        revenueChartData.Data.Add(dayRevenue);
+                    }
+                }
+                else if (chartPeriod == "month")
+                {
+                    var today = DateTime.Now.Date;
+                    var startOfCurrentWeek = today.AddDays(-(int)today.DayOfWeek + 1);
+
+                    for (int i = 3; i >= 0; i--)
+                    {
+                        var weekStart = startOfCurrentWeek.AddDays(-i * 7);
+                        var weekEnd = weekStart.AddDays(6).AddDays(1).AddTicks(-1);
+
+                        if (i == 0 && weekEnd > DateTime.Now)
+                        {
+                            weekEnd = DateTime.Now;
+                        }
+
+                        var weekRevenue = chartOrdersQuery
+                            .Where(o => o.CreatedTime >= weekStart && o.CreatedTime <= weekEnd)
+                            .Sum(o => (decimal)(o.Fee - o.FeeExcludingTax));
+
+                        revenueChartData.Labels.Add($"Tuần {4 - i}");
+                        revenueChartData.Data.Add(weekRevenue);
+                    }
+                }
+                else if (chartPeriod == "year")
+                {
+                    var currentYear = DateTime.Now.Year;
+                    var currentMonth = DateTime.Now.Month;
+
+                    for (int i = 1; i <= currentMonth; i++)
+                    {
+                        var monthStart = new DateTime(currentYear, i, 1);
+                        var monthEnd = i == currentMonth ? DateTime.Now : monthStart.AddMonths(1).AddTicks(-1);
+
+                        var monthRevenue = chartOrdersQuery
+                            .Where(o => o.CreatedTime >= monthStart && o.CreatedTime <= monthEnd)
+                            .Sum(o => (decimal)(o.Fee - o.FeeExcludingTax));
+
+                        revenueChartData.Labels.Add($"T{i}");
+                        revenueChartData.Data.Add(monthRevenue);
+                    }
+                }
+
+                model.RevenueChart = revenueChartData;
+
+                var statusData = allOrders
+                    .GroupBy(o => o.Status)
+                    .Select(g => new
+                    {
+                        Status = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToList();
+
+                model.StatusChart = new ChartData
+                {
+                    Labels = statusData.Select(x => GetOrderStatusVietnamese(x.Status)).ToList(),
+                    Data = statusData.Select(x => (decimal)x.Count).ToList()
+                };
+            }
+            catch (Exception ex)
+            {
+                model = new ShipperStatisticalModel
+                {
+                    ShipperName = "Unknown",
+                    ShipperId = id ?? 0,
+                    DeliveringOrders = 0,
+                    CompletedOrders = 0,
+                    TotalRevenue = 0,
+                    DeliveringRevenue = 0,
+                    RevenueChart = new ChartData { Labels = new List<string>(), Data = new List<decimal>() },
+                    StatusChart = new ChartData { Labels = new List<string>(), Data = new List<decimal>() }
+                };
+            }
+
+            ViewBag.SelectedPeriod = period;
+            ViewBag.ChartPeriod = chartPeriod;
+
+            return View(model);
+        }
+
+        private string GetOrderStatusVietnamese(OrderStatus status)
+        {
+            return status switch
+            {
+                OrderStatus.Confirmed => "Chờ nhận",
+                OrderStatus.Delivery => "Đang giao",
+                OrderStatus.Completed => "Đã giao",
+                OrderStatus.Cancelled => "Đã hủy",
+                _ => "Không xác định"
+            };
+        }
+
         private (DateTime startDate, DateTime endDate) GetDateRange(string periodType)
         {
             var now = DateTime.Now;
@@ -267,7 +469,6 @@ namespace Assignment.Controllers
                     startDate = now.Date.AddDays(-27);
                     break;
                 case "year":
-                    // Từ đầu năm đến nay
                     startDate = new DateTime(now.Year, 1, 1);
                     break;
                 default:

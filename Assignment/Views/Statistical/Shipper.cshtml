@@ -1,0 +1,329 @@
+﻿@model Assignment.Models.ShipperStatisticalModel
+@{
+    if (Model.ShipperId == null)
+    {
+        ViewData["Title"] = "Thống Kê Giao Hàng";
+    }
+    else
+    {
+        ViewData["Title"] = "Thống Kê Giao Hàng - " + Model.ShipperName;
+    }
+
+    var selectedPeriod = ViewBag.SelectedPeriod?.ToString() ?? "month";
+    var chartPeriod = ViewBag.ChartPeriod?.ToString() ?? "month";
+    var userRole = Assignment.Utilities.CookieAuthHelper.GetRole(User);
+
+    var periods = new Dictionary<string, string> {
+        {"today", "Hôm nay"},
+        {"week", "Tuần này"},
+        {"month", "Tháng này"},
+        {"year", "Năm này"},
+        {"all", "Mọi thời gian"}
+    };
+
+    var chartPeriods = new Dictionary<string, string> {
+        {"week", "Tuần này"},
+        {"month", "Tháng này"},
+        {"year", "Năm này"}
+    };
+}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+<link href="~/css/statistical.css" rel="stylesheet" />
+
+<div class="container-fluid py-4">
+    <div class="dashboard-header">
+        <h2><i class="fas fa-truck text-primary"></i> Thống Kê Giao Hàng</h2>
+        @if (userRole == "Admin")
+        {
+            <form method="get" id="shipperFilterForm">
+                <select class="filter-select" name="id" id="shipperFilter" onchange="this.form.submit()">
+                    @if (Model.ShipperId == null)
+                    {
+                        <option value="" selected>Tổng quan tất cả người giao hàng</option>
+                    }
+                    else
+                    {
+                        <option value="">Tổng quan tất cả người giao hàng</option>
+                    }
+                    @foreach (var shipper in ViewBag.Shippers)
+                    {
+                        @if (Model.ShipperId == shipper.Id)
+                        {
+                            <option value="@shipper.Id" selected="">@shipper.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@shipper.Id">@shipper.Name</option>
+                        }
+                    }
+                </select>
+                <input type="hidden" name="period" value="@selectedPeriod" />
+                <input type="hidden" name="chartPeriod" value="@chartPeriod" />
+            </form>
+        }
+        else if (Model.ShipperId != null)
+        {
+            <h5 class="text-muted">Người giao hàng: @Model.ShipperName</h5>
+        }
+    </div>
+
+    <div class="filter-container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="fas fa-chart-bar text-primary"></i> Thống Kê Tổng Quan</h6>
+            <form method="get" id="statsFilterForm">
+                <select class="filter-select" name="period" id="statsFilter" onchange="this.form.submit()">
+                    @foreach (var period in periods)
+                    {
+                        if (period.Key == selectedPeriod)
+                        {
+                            <option value="@period.Key" selected>@period.Value</option>
+                        }
+                        else
+                        {
+                            <option value="@period.Key">@period.Value</option>
+                        }
+                    }
+                </select>
+                @if (userRole == "Admin")
+                {
+                    <input type="hidden" name="id" value="@Model.ShipperId" />
+                }
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card delivering">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value" id="deliveringOrders">0</div>
+                        <div class="stat-label">Đơn Đang Giao</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card completed">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value" id="completedOrders">0</div>
+                        <div class="stat-label">Đơn Đã Giao</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card revenue">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value" id="totalRevenue">0</div>
+                        <div class="stat-label">Tiền Đã Nhận</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card delivering-revenue">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value" id="deliveringRevenue">0</div>
+                        <div class="stat-label">Tiền Đang Giao</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="filter-container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-chart-line text-primary"></i> Biểu Đồ Thu Nhập</h6>
+                    <form method="get" id="revenueChartFilterForm">
+                        <input type="hidden" name="period" value="@selectedPeriod" />
+                        <select class="filter-select" name="chartPeriod" id="revenueChartFilter" onchange="this.form.submit()">
+                            @foreach (var period in chartPeriods)
+                            {
+                                if (period.Key == chartPeriod)
+                                {
+                                    <option value="@period.Key" selected>@period.Value</option>
+                                }
+                                else
+                                {
+                                    <option value="@period.Key">@period.Value</option>
+                                }
+                            }
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="filter-container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie text-primary"></i> Trạng Thái Đơn Hàng</h6>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    let revenueChart, statusChart;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initRevenueChart();
+        initStatusChart();
+    });
+
+    function initRevenueChart() {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+
+        const revenueLabels = @Html.Raw(Json.Serialize(Model.RevenueChart?.Labels ?? new List<string>()));
+        const revenueData = @Html.Raw(Json.Serialize(Model.RevenueChart?.Data ?? new List<decimal>()));
+
+        revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Thu nhập (VND)',
+                    data: revenueData,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#28a745',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN').format(value) + ' VND';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function initStatusChart() {
+        const ctx = document.getElementById('statusChart').getContext('2d');
+
+        const statusLabels = @Html.Raw(Json.Serialize(Model.StatusChart?.Labels ?? new List<string>()));
+        const statusData = @Html.Raw(Json.Serialize(Model.StatusChart?.Data ?? new List<decimal>()));
+
+        statusChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: [
+                        '#ffc107', // Chờ xử lý
+                        '#17a2b8', // Đang xử lý
+                        '#007bff', // Đang giao
+                        '#28a745', // Đã giao
+                        '#dc3545', // Đã hủy
+                        '#6f42c1'  // Khác
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function animateValue(element, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const current = Math.floor(progress * (end - start) + start);
+            element.innerHTML = new Intl.NumberFormat('vi-VN').format(current);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            const deliveringOrdersElement = document.querySelector('.stat-card.delivering .stat-value');
+            const completedOrdersElement = document.querySelector('.stat-card.completed .stat-value');
+            const totalRevenueElement = document.querySelector('.stat-card.revenue .stat-value');
+            const deliveringRevenueElement = document.querySelector('.stat-card.delivering-revenue .stat-value');
+
+            if (deliveringOrdersElement && completedOrdersElement && totalRevenueElement && deliveringRevenueElement) {
+                const deliveringOrdersValue = @Model.DeliveringOrders;
+                const completedOrdersValue = @Model.CompletedOrders;
+                const totalRevenueValue = Number(@(Model.TotalRevenue.ToString().Replace(",", ".")));
+                const deliveringRevenueValue = Number(@(Model.DeliveringRevenue.ToString().Replace(",", ".")));
+
+                animateValue(deliveringOrdersElement, 0, deliveringOrdersValue, 2000);
+                animateValue(completedOrdersElement, 0, completedOrdersValue, 2000);
+                animateValue(totalRevenueElement, 0, totalRevenueValue, 2000);
+                animateValue(deliveringRevenueElement, 0, deliveringRevenueValue, 2000);
+            }
+        }, 500);
+    });
+</script>
