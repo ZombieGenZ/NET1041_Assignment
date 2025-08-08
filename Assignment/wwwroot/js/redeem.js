@@ -103,13 +103,16 @@ function LoadData(search) {
                                 : `${item.discount}%`
                             }</td>
                             <td>${
-                              item.IsLifeTime
+                              item.isLifeTime
                                 ? "Vĩnh viễn"
                                 : convertDurationToStringDescription(
                                     item.endTime
                                   )
                             }</td>
-                            <td>${item.minimumRequirements}</td>
+                            <td>${item.minimumRequirements.toLocaleString("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                            })}</td>
                             <td>${
                               item.unlimitedPercentageDiscount
                                 ? "Không giới hạn"

@@ -1,5 +1,47 @@
 ﻿@model List<Redeems>
 
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gold-gradient: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+        --silver-gradient: linear-gradient(135deg, #bdc3c7 0%, #ecf0f1 100%);
+        --copper-gradient: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
+        --diamond-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .rank-none {
+        color: #6c757d;
+    }
+
+    .rank-copper {
+        background: var(--copper-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .rank-silver {
+        background: var(--silver-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .rank-gold {
+        background: var(--gold-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .rank-diamond {
+        background: var(--diamond-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+</style>
+
 <div class="container">
 <h1 class="text-center">Đổi thưởng</h1>
 <p class="text-center h4 my-3">Số điểm tích lũy của tôi: <span id="point"><b>0</b> điểm</span></p>
@@ -46,6 +88,29 @@
                     <div class="col-6">
                         <small class="text-muted">Giá quy đổi:</small><br>
                         <small><b>@redeem.Price.ToString("N0")</b> điểm</small>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted">Yêu cầu:</small><br>
+                        @if (redeem.RankRequirement == UserRankEnum.None)
+                        {
+                            <span class="rank-badge rank-none">Không yêu cầu cấp bậc</span>
+                        }
+                        else if (redeem.RankRequirement == UserRankEnum.Copper)
+                        {
+                            <span class="rank-badge rank-copper">Cấp bậc Đồng</span>
+                        }
+                        else if (redeem.RankRequirement == UserRankEnum.Silver)
+                        {
+                            <span class="rank-badge rank-silver">Cấp bậc Bạc</span>
+                        }
+                        else if (redeem.RankRequirement == UserRankEnum.Gold)
+                        {
+                            <span class="rank-badge rank-gold">Cấp bậc Vàng</span>
+                        }
+                        else if (redeem.RankRequirement == UserRankEnum.Diamond)
+                        {
+                            <span class="rank-badge rank-diamond">Cấp bậc Kim Cương</span>
+                        }
                     </div>
                 </div>
                 

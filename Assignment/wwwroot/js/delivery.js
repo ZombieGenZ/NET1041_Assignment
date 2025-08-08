@@ -3,15 +3,8 @@
     listDom.innerHTML = "";
     fetch("/api/users/shipper")
         .then((response) => {
-            if (response.status === 422 || response.status === 401) {
-                return response.json();
-            }
-
             if (!response.ok) {
-                return showErrorToast(
-                    "Lỗi khi tải dử liệu. Vui lòng thử lại sau.",
-                    4000
-                );
+                return null;
             }
 
             return response.json();

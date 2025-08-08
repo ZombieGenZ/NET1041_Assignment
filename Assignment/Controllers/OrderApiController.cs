@@ -426,6 +426,7 @@ namespace Assignment.Controllers
                     });
                 }
 
+                exitingOrder.ShipperId = userId;
                 exitingOrder.Status = OrderStatus.Delivery;
                 _context.Orders.Update(exitingOrder);
                 _context.SaveChanges();
