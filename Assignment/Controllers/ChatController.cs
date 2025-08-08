@@ -24,6 +24,11 @@ namespace Assignment.Controllers
                 return View("StaffChat");
             }
 
+            if (userRole != "Admin" && id.HasValue)
+            {
+                return Redirect("/chat");
+            }
+
             return View("UserChat");
         }
     }

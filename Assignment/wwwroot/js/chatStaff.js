@@ -6,7 +6,7 @@ window.addEventListener("load", async () => {
     LoadData();
     await connectChatRealtime();
   }
-  connectChatStaffRealtime();
+  await connectChatStaffRealtime();
 });
 
 window.addEventListener("beforeunload", function () {
@@ -253,23 +253,27 @@ async function connectChatRealtime() {
 }
 
 async function connectChatStaffRealtime() {
-  try {
-    await connection.start();
+    try {
+        if (CurrentRoomChat == 0) {
+            await connection.start();
+        }
 
-    if (!connection) {
-      return;
+        if (!connection) {
+            return;
+        }
+
+        await connection.invoke("ConnectStaffChatTracking");
+
+        connection.off("NewNotification");
+
+        connection.on("NewNotification", () => {
+            console.log("run");
+            
+            LoadListData();
+        });
+    } catch (e) {
+        console.log(e);
     }
-
-    await connection.invoke("ConnectStaffChatTracking");
-
-    connection.off("NewNotification");
-
-    connection.on("NewNotification", () => {
-      LoadListData();
-    });
-  } catch (e) {
-    console.log(e);
-  }
 }
 
 /**

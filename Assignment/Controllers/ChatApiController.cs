@@ -63,7 +63,8 @@ namespace Assignment.Controllers
                     room = new ChatRoom()
                     {
                         IsIdentification = true,
-                        UserId = userId
+                        UserId = userId,
+                        IsRead = true
                     };
                     _context.ChatRooms.Add(room);
                 }
@@ -71,7 +72,8 @@ namespace Assignment.Controllers
                 {
                     room = new ChatRoom()
                     {
-                        ChatId = chatid
+                        ChatId = chatid,
+                        IsRead = true
                     };
                     _context.ChatRooms.Add(room);
                 }
@@ -81,14 +83,15 @@ namespace Assignment.Controllers
                 await _hubContext.Clients.Group("ChatStaff").SendAsync("NewNotification", new
                 {
                     id = room?.Id,
-                    notification = false
+                    notification = false,
+                    IsRead = true
                 });
             }
 
             if (room != null && userRole == "Admin")
             {
                 room.IsRead = true;
-                room.UpdatedAt = DateTime.Now;
+                //room.UpdatedAt = DateTime.Now;
                 _context.ChatRooms.Update(room);
                 await _context.SaveChangesAsync();
             }
